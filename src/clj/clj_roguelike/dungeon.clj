@@ -23,5 +23,7 @@
       (yx->i width [y x])))) 
 
 (defn add-room [w h yx area]
-  (let [is (indexes-rect w h yx (:width area))]
-    (reduce #(assoc-in %1 [:tiles %2 :tile] :empty) area is)))
+  (let [indexes (indexes-rect w h yx (:width area))]
+    (if (every? #(= :wall (:tile %)) (map (partial nth (:tiles area)) indexes))
+      (reduce #(assoc-in %1 [:tiles %2 :tile] :empty) area indexes)
+      area)))
