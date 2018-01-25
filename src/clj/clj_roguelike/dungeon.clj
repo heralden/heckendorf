@@ -25,7 +25,7 @@
       (yx->i width [y x])))) 
 
 (defn- indexes->tiles [tiles indexes]
-  (map (partial nth tiles) indexes))
+  (map #(nth tiles % nil) indexes))
 
 (defn- assoc-indexes [indexes tile area]
   (reduce #(assoc-in %1 [:tiles %2 :tile] tile) area indexes))
@@ -34,14 +34,15 @@
   (and (<= (+ h y) (:height area))
        (<= (+ w x) (:width area))))
 
-(defn- all-walls? [tiles indexes]
-  (every? #(= :wall (:tile %)) 
-          (indexes->tiles tiles indexes)))
+(defn- none-empty? [tiles indexes]
+  (not-any? #(= :empty (:tile %)) 
+            (indexes->tiles tiles indexes)))
 
 (defn add-room [w h yx area]
-  (let [indexes (indexes-rect w h yx (:width area))]
+  (let [indexes (indexes-rect w h yx (:width area))
+        boundary (indexes-rect (+ 2 w) (+ 2 h) (mapv dec yx) (:width area))]
     (if (and (within-boundaries? w h yx area)
-             (all-walls? (:tiles area) indexes))
+             (none-empty? (:tiles area) boundary))
       (assoc-indexes indexes :empty area)
       area)))
 

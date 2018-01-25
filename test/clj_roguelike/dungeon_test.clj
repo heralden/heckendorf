@@ -19,7 +19,7 @@
 (fact "Does not add overlapping rooms"
   (->> (create-area 4 4)
        (add-room 2 2 [0 0])
-       (add-room 2 2 [1 1])
+       (add-room 2 2 [2 2])
        :tiles
        (mapv :tile)) => [:empty :empty :wall  :wall
                          :empty :empty :wall  :wall
@@ -27,11 +27,11 @@
                          :wall  :wall  :wall  :wall])
 
 (fact "Adds additional rooms"
-  (->> (create-area 4 4)
+  (->> (create-area 5 4)
        (add-room 2 2 [0 0])
-       (add-room 2 2 [2 2])
+       (add-room 2 2 [2 3])
        :tiles
-       (mapv :tile)) => [:empty :empty :wall  :wall
-                         :empty :empty :wall  :wall
-                         :wall  :wall  :empty :empty
-                         :wall  :wall  :empty :empty])
+       (mapv :tile)) => [:empty :empty :wall  :wall  :wall
+                         :empty :empty :wall  :wall  :wall
+                         :wall  :wall  :wall  :empty :empty
+                         :wall  :wall  :wall  :empty :empty])
