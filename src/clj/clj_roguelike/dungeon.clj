@@ -11,10 +11,15 @@
    :tiles (vec (repeat (* w h) {:tile :wall}))})
 
 (defn- yx->i [w [y x]]
-  (+ x (* y w)))
+  (if (< -1 x w)
+    (+ x (* y w))
+    -1))
 
 (defn- i->yx [w i]
   [(int (/ i w)) (mod i w)])
+
+(defn- i->tile [index area]
+  (:tile (nth (:tiles area) index nil)))
 
 (defn- coord-range [c d]
   (map #(+ c %) (range 0 d)))
@@ -62,8 +67,28 @@
             (rand-coord area)
             area))
 
-(defn- random-corridors [area]
-  )
+(defn- adjacent-tiles [index area]
+  (let [w (:width area)
+        [y x] (i->yx w index)]
+    (->> [[(dec y) x]     ; North
+          [y (inc x)]     ; East
+          [(inc y) x]     ; South
+          [y (dec x)]]    ; West 
+         (map (partial yx->i w))
+         (filter pos?)))) 
+
+(defn- edge-tile? [index area]
+  (let [tile (i->tile index area)]
+    (and (= tile :empty)
+         (some #(= (i->tile % area) :wall)
+               (adjacent-tiles index area)))))
+
+(defn- edge-tiles [area]
+  (keep-indexed (fn [index _] (when (edge-tile? index area) index))
+                (:tiles area)))
+
+#_(defn- random-corridors [area]
+  (edge-tiles area))
 
 (defn generate-dungeon [w h room-attempts]
   (reduce random-room (create-area w h) (repeat room-attempts nil)))
