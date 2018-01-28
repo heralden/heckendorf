@@ -75,7 +75,7 @@
           [(inc y) x]     ; South
           [y (dec x)]]    ; West 
          (map (partial yx->i w))
-         (filter pos?)))) 
+         (filter (complement neg?))))) 
 
 (defn- edge-tile? [index area]
   (let [tile (i->tile index area)]
