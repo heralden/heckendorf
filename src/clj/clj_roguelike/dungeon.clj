@@ -21,6 +21,9 @@
 (defn- i->tile [index area]
   (:tile (nth (:tiles area) index nil)))
 
+(defn- yx->tile [yx area]
+  (i->tile (yx->i (:width area) yx) area))
+
 (defn- coord-range [c d]
   (map #(+ c %) (range 0 d)))
 
@@ -78,17 +81,50 @@
          (filter (complement neg?))))) 
 
 (defn- edge-tile? [index area]
-  (let [tile (i->tile index area)]
-    (and (= tile :empty)
-         (some #(= (i->tile % area) :wall)
-               (adjacent-tiles index area)))))
+  (and (= :empty (i->tile index area))
+       (some #(= :wall (i->tile % area))
+             (adjacent-tiles index area))))
 
 (defn- edge-tiles [area]
   (keep-indexed (fn [index _] (when (edge-tile? index area) index))
                 (:tiles area)))
 
-#_(defn- random-corridors [area]
-  (edge-tiles area))
+(defn- corner-tile? [index area]
+  (= 2 (->> (map #(= :wall (i->tile % area))
+                 (adjacent-tiles index area))
+            (filter true?)
+            count)))
+
+(defn- adjacent-walls [index area]
+  (filter #(= :wall (i->tile % area)) 
+          (adjacent-tiles index area)))
+
+(defn- walk-until [pred w yxs dir]
+  (let [nxt (mapv + (first yxs) dir)]
+    (cond 
+      (neg? (yx->i w nxt)) nil
+      (pred nxt) (cons nxt yxs)
+      :else (recur pred w (cons nxt yxs) dir))))
+
+(defn- trace-corridors [index area]
+  (let [w (:width area)
+        yx (i->yx w index)]
+    (->> area
+         (adjacent-walls index)
+         (map (partial i->yx w))
+         (map #(map - %2 %1) (repeat yx))
+         (map (partial walk-until 
+                       #(= :empty (yx->tile % area))
+                       w
+                       [yx])))))
+
+(defn- create-corridors []
+  )
+
+(defn- random-corridors [area]
+  (->> area
+       edge-tiles 
+       shuffle))
 
 (defn generate-dungeon [w h room-attempts]
   (reduce random-room (create-area w h) (repeat room-attempts nil)))
