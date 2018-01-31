@@ -1,6 +1,8 @@
 (ns clj-roguelike.dungeon
   (:require [clj-roguelike.random :refer [rand-range perc-chance]]))
 
+(def additional-tunnel-perc 10)
+
 (def current-id (atom 0))
 (defn new-id []
   (swap! current-id inc))
@@ -21,8 +23,14 @@
 (defn- i->tile [index area]
   (:tile (nth (:tiles area) index nil)))
 
+(defn- i->m [index area]
+  (nth (:tiles area) index nil))
+
 (defn- yx->tile [yx area]
   (i->tile (yx->i (:width area) yx) area))
+
+(defn- yx->m [yx area]
+  (i->m (yx->i (:width area) yx) area))
 
 (defn- coord-range [c d]
   (map #(+ c %) (range 0 d)))
@@ -36,13 +44,13 @@
 (defn- indexes->tiles [tiles indexes]
   (map #(nth tiles % nil) indexes))
 
-(defn- assoc-room [id area index]
+(defn- carve-tile [id area index]
   (-> area
       (assoc-in [:tiles index :tile] :empty)
       (assoc-in [:tiles index :id] id)))
 
-(defn- assoc-room-indexes [indexes id area]
-  (reduce (partial assoc-room id) area indexes))
+(defn- carve-tile-indexes [indexes id area]
+  (reduce (partial carve-tile id) area indexes))
 
 (defn- within-boundaries? [w h [y x] area]
   (and (<= (+ h y) (:height area))
@@ -57,7 +65,7 @@
         boundary (indexes-rect (+ 2 w) (+ 2 h) (mapv dec yx) (:width area))]
     (if (and (within-boundaries? w h yx area)
              (none-empty? (:tiles area) boundary))
-      (assoc-room-indexes indexes (new-id) area)
+      (carve-tile-indexes indexes (new-id) area)
       area)))
 
 (defn- rand-coord [area]
@@ -118,16 +126,51 @@
                        w
                        [yx])))))
 
-(defn- create-corridors []
-  )
+(defn- same-id? [yx1 yx2 area]
+  (= (:id (yx->m yx1 area))
+     (:id (yx->m yx2 area))))
 
-(defn- random-corridors [area]
+(defn- swap-id [old new area]
+  (assoc area 
+         :tiles 
+         (mapv #(if (= old (:id %))
+                 (assoc % :id new)
+                 %)
+              (:tiles area))))
+
+(defn- create-corridor [area yxs]
+  (let [ayx (first yxs)
+        byx (last yxs)
+        old-id (:id (yx->m ayx area))
+        id (:id (yx->m byx area))
+        indexes (map (partial yx->i (:width area)) 
+                     (drop-last (rest yxs)))]
+    (if (same-id? ayx byx area)
+      (if (perc-chance additional-tunnel-perc)
+        (carve-tile-indexes indexes id area)
+        area)
+      (->> area
+           (carve-tile-indexes indexes id)
+           (swap-id old-id id)))))
+
+(defn- create-corridors [area index]
+  (let [lyxs (filter seq? (trace-corridors index area))]
+    (println "Trying" index)
+    (reduce create-corridor area lyxs)))
+
+(defn- generate-rooms [room-attempts area]
+  (reduce random-room area (repeat room-attempts nil)))
+
+(defn- generate-corridors [area]
   (->> area
        edge-tiles 
-       shuffle))
+       shuffle
+       (reduce create-corridors area)))
 
 (defn generate-dungeon [w h room-attempts]
-  (reduce random-room (create-area w h) (repeat room-attempts nil)))
+  (->> (create-area w h)
+       (generate-rooms room-attempts)
+       (generate-corridors)))
 
 (defn pretty-print [area]
   (->> (map :tile (:tiles area))
