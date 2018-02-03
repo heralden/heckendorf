@@ -109,7 +109,7 @@
 
 (defn- walk-until [pred [w h] yxs dir]
   (let [next-yx (mapv + (first yxs) dir)
-        next-i (yx->i w dir)]
+        next-i (yx->i w next-yx)]
     (cond 
       (or (neg? next-i)
           (<= (* w h) next-i)) nil
@@ -122,10 +122,10 @@
     (->> area
          (adjacent-walls index)
          (map (partial i->yx w))
-         (map #(map - %2 %1) (repeat yx))
+         (map #(mapv - %2 %1) (repeat yx))
          (map (partial walk-until 
                        #(= :empty (yx->tile % area))
-                       [(:width area) (:height area)]
+                       [w (:height area)]
                        [yx])))))
 
 (defn- same-id? [yx1 yx2 area]
