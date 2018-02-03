@@ -107,12 +107,14 @@
   (filter #(= :wall (i->tile % area)) 
           (adjacent-tiles index area)))
 
-(defn- walk-until [pred w yxs dir]
-  (let [nxt (mapv + (first yxs) dir)]
+(defn- walk-until [pred [w h] yxs dir]
+  (let [next-yx (mapv + (first yxs) dir)
+        next-i (yx->i w dir)]
     (cond 
-      (neg? (yx->i w nxt)) nil
-      (pred nxt) (cons nxt yxs)
-      :else (recur pred w (cons nxt yxs) dir))))
+      (or (neg? next-i)
+          (<= (* w h) next-i)) nil
+      (pred next-yx) (cons next-yx yxs)
+      :else (recur pred [w h] (cons next-yx yxs) dir))))
 
 (defn- trace-corridors [index area]
   (let [w (:width area)
@@ -123,7 +125,7 @@
          (map #(map - %2 %1) (repeat yx))
          (map (partial walk-until 
                        #(= :empty (yx->tile % area))
-                       w
+                       [(:width area) (:height area)]
                        [yx])))))
 
 (defn- same-id? [yx1 yx2 area]
