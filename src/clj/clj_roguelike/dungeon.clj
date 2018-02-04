@@ -12,37 +12,34 @@
    :height h
    :tiles (vec (repeat (* w h) {:tile :wall}))})
 
+(defn- i->yx [w i]
+  [(int (/ i w)) (mod i w)])
+
+(defn- i->m [index area]
+  (nth (:tiles area) index nil))
+
 (defn- yx->i [w [y x]]
   (if (< -1 x w)
     (+ x (* y w))
     -1))
 
-(defn- i->yx [w i]
-  [(int (/ i w)) (mod i w)])
-
-(defn- i->tile [index area]
-  (:tile (nth (:tiles area) index nil)))
-
-(defn- i->m [index area]
-  (nth (:tiles area) index nil))
-
-(defn- yx->tile [yx area]
-  (i->tile (yx->i (:width area) yx) area))
-
 (defn- yx->m [yx area]
   (i->m (yx->i (:width area) yx) area))
 
-(defn- coord-range [c d]
-  (map #(+ c %) (range 0 d)))
+(defn- empty-tile? [area index]
+  (= :empty (:tile (i->m index area))))
 
-(defn- indexes-rect [w h [y x] width]
-  (let [ys (coord-range y h) 
-        xs (coord-range x w)]
+(defn- wall-tile? [area index]
+  (= :wall (:tile (i->m index area))))
+
+(defn- take-nums [start amount]
+  (map (partial + start) (range 0 amount)))
+
+(defn- indexes-rect [w h [y x] area-width]
+  (let [ys (take-nums y h) 
+        xs (take-nums x w)]
     (for [y ys x xs] 
-      (yx->i width [y x])))) 
-
-(defn- indexes->tiles [tiles indexes]
-  (map #(nth tiles % nil) indexes))
+      (yx->i area-width [y x])))) 
 
 (defn- carve-tile [id area index]
   (-> area
@@ -56,15 +53,11 @@
   (and (<= (+ h y) (:height area))
        (<= (+ w x) (:width area))))
 
-(defn- none-empty? [tiles indexes]
-  (not-any? #(= :empty (:tile %)) 
-            (indexes->tiles tiles indexes)))
-
 (defn add-room [w h yx area]
   (let [indexes (indexes-rect w h yx (:width area))
-        boundary (indexes-rect (+ 2 w) (+ 2 h) (mapv dec yx) (:width area))]
+        boundary-idxs (indexes-rect (+ 2 w) (+ 2 h) (mapv dec yx) (:width area))]
     (if (and (within-boundaries? w h yx area)
-             (none-empty? (:tiles area) boundary))
+             (not-any? (partial empty-tile? area) boundary-idxs))
       (carve-tile-indexes indexes (new-id) area)
       area)))
 
@@ -89,8 +82,8 @@
          (filter (complement neg?))))) 
 
 (defn- edge-tile? [index area]
-  (and (= :empty (i->tile index area))
-       (some #(= :wall (i->tile % area))
+  (and (empty-tile? area index)
+       (some (partial wall-tile? area)
              (adjacent-tiles index area))))
 
 (defn- edge-tiles [area]
@@ -98,13 +91,13 @@
                 (:tiles area)))
 
 (defn- corner-tile? [index area]
-  (= 2 (->> (map #(= :wall (i->tile % area))
+  (= 2 (->> (map (partial wall-tile? area)
                  (adjacent-tiles index area))
             (filter true?)
             count)))
 
 (defn- adjacent-walls [index area]
-  (filter #(= :wall (i->tile % area)) 
+  (filter (partial wall-tile? area)
           (adjacent-tiles index area)))
 
 (defn- walk-until [pred [w h] yxs dir]
@@ -113,7 +106,7 @@
     (cond 
       (or (neg? next-i)
           (<= (* w h) next-i)) nil
-      (pred next-yx) (cons next-yx yxs)
+      (pred next-i) (cons next-yx yxs)
       :else (recur pred [w h] (cons next-yx yxs) dir))))
 
 (defn- trace-corridors [index area]
@@ -124,7 +117,7 @@
          (map (partial i->yx w))
          (map #(mapv - %2 %1) (repeat yx))
          (map (partial walk-until 
-                       #(= :empty (yx->tile % area))
+                       (partial empty-tile? area)
                        [w (:height area)]
                        [yx])))))
 
