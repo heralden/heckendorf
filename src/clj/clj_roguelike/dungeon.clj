@@ -2,6 +2,8 @@
   (:require [clj-roguelike.random :refer [rand-range perc-chance]]))
 
 (def additional-tunnel-perc 10)
+(def min-room-length 2)
+(def max-room-length 9)
 
 (def current-id (atom 0))
 (defn new-id []
@@ -66,8 +68,8 @@
    (rand-int (:width area))])
 
 (defn- random-room [area _]
-  (add-room (rand-range 2 9)
-            (rand-range 2 9)
+  (add-room (rand-range min-room-length max-room-length)
+            (rand-range min-room-length max-room-length)
             (rand-coord area)
             area))
 
