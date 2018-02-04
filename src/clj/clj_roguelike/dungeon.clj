@@ -157,7 +157,6 @@
 
 (defn- create-corridors [area index]
   (let [lyxs (filter seq? (trace-corridors index area))]
-    (println "Trying" index)
     (reduce create-corridor area lyxs)))
 
 (defn- generate-rooms [room-attempts area]
