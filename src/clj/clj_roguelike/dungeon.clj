@@ -154,6 +154,24 @@
   (let [lyxs (filter seq? (trace-corridors index area))]
     (reduce create-corridor area lyxs)))
 
+(defn- connected-dungeon? [area]
+  (if-let [ids (seq (->> area
+                         :tiles
+                         (map :id)
+                         (filter number?)))]
+    (apply = ids)
+    false))
+
+(defn- carved-dungeon? [area]
+  (boolean (seq (->> area
+                     :tiles
+                     (map :tile)
+                     (filter #{:empty})))))
+
+(defn- valid-dungeon? [area]
+  (and (connected-dungeon? area)
+       (carved-dungeon? area)))
+
 (defn- generate-rooms [room-attempts area]
   (reduce random-room area (repeat room-attempts nil)))
 
@@ -164,9 +182,12 @@
        (reduce create-corridors area)))
 
 (defn generate-dungeon [w h room-attempts]
-  (->> (create-area w h)
-       (generate-rooms room-attempts)
-       (generate-corridors)))
+  (let [dung (->> (create-area w h)
+                  (generate-rooms room-attempts)
+                  (generate-corridors))]
+    (if (valid-dungeon? dung)
+      dung
+      (recur w h room-attempts))))
 
 (defn pretty-print [area]
   (->> (map :tile (:tiles area))
