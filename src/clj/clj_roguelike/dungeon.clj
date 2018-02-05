@@ -6,7 +6,7 @@
 (def max-room-length 9)
 
 (def current-id (atom 0))
-(defn new-id []
+(defn- new-id []
   (swap! current-id inc))
 
 (defn create-area [w h]
