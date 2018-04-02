@@ -3,7 +3,13 @@
                  [org.clojure/clojurescript "1.9.908"]
                  [reagent "0.7.0"]
                  [re-frame "0.10.2"]
-                 [http-kit "2.2.0"]]
+                 [http-kit "2.2.0"]
+                 [com.taoensso/sente "1.12.0"]
+                 [com.taoensso/timbre "4.10.0"]
+                 [hiccup "1.0.5"]
+                 [ring "1.6.3"]
+                 [ring/ring-defaults "0.3.1"]
+                 [compojure "1.6.0"]]
 
   :main clj-roguelike.web
 
