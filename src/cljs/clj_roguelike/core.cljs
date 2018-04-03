@@ -24,16 +24,16 @@
 
 (defmethod -event-msg-handler :default
   [{:as ev-msg :keys [event]}]
-  (println "Unhandled event: %s" event))
+  (println "Unhandled event" event))
 
 (defmethod -event-msg-handler :chsk/state
   [{:as ev-msg :keys [event]}]
   (when (:first-open? (second (second event)))
-    (println "Socket is ready!")))
+    (request-game-board!)))
 
 (defn request-game-board! []
   (chsk-send! [:game/start] 5000
-    (fn [cb-reply] (println "Reply was: %s" cb-reply))))
+    (fn [game-board] (println "Game" game-board))))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-f @router_] (stop-f)))
@@ -57,5 +57,4 @@
   (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root)
-  (start-router!)
-  (request-game-board!))
+  (start-router!))
