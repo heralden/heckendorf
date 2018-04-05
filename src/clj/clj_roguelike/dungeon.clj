@@ -14,18 +14,18 @@
    :height h
    :tiles (vec (repeat (* w h) {:tile :wall}))})
 
-(defn- i->yx [w i]
+(defn i->yx [w i]
   [(int (/ i w)) (mod i w)])
 
-(defn- i->m [index area]
+(defn i->m [index area]
   (nth (:tiles area) index nil))
 
-(defn- yx->i [w [y x]]
+(defn yx->i [w [y x]]
   (if (< -1 x w)
     (+ x (* y w))
     -1))
 
-(defn- yx->m [yx area]
+(defn yx->m [yx area]
   (i->m (yx->i (:width area) yx) area))
 
 (defn- empty-tile? [area index]
