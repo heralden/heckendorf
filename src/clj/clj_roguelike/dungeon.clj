@@ -195,3 +195,10 @@
                    (= % :empty) :.))
        (partition (:width area))
        clojure.pprint/pprint))
+
+(defn rand-coord-tile [tile area]
+  (let [i (rand-int (* (:width area) (:height area)))]
+    (if (= (:tile (nth (:tiles area) i))
+           tile)
+      (i->yx (:width area) i)
+      (recur tile area))))
