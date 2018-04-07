@@ -53,5 +53,5 @@
   (perc-vec [[60 #(rand-potion :greater)]
              [50 #(rand-potion :greater)]
              [50 #(rand-potion :lesser)]
-             [50 #(rand-weapon :epic)]
+             [60 #(rand-weapon :epic)]
              [80 #(rand-weapon :rare)]]))
