@@ -6,3 +6,8 @@
  ::initialize-db
  (fn  [_ _]
    db/default-db))
+
+(re-frame/reg-event-db
+  ::game-state
+  (fn [db [_ game-board]]
+    (assoc db :game game-board)))

@@ -16,6 +16,10 @@
   (def chsk-send! send-fn)
   (def chsk-state state))
 
+(defn request-game-board! []
+  (chsk-send! [:game/start] 5000
+    (fn [game-board] (re-frame/dispatch [::events/game-state game-board]))))
+
 (defmulti -event-msg-handler :id)
 
 (defn event-msg-handler
@@ -30,10 +34,6 @@
   [{:as ev-msg :keys [event]}]
   (when (:first-open? (second (second event)))
     (request-game-board!)))
-
-(defn request-game-board! []
-  (chsk-send! [:game/start] 5000
-    (fn [game-board] (println "Game" game-board))))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-f @router_] (stop-f)))
