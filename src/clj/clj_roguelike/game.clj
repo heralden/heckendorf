@@ -27,22 +27,22 @@
     [#(rand-range 1 3)  :chest/common]
     [#(rand-range 2 4)  :chest/uncommon]
     [#(rand-range 1 3)  :chest/rare]
-    [1                  :chest/epic]]
+    [#(identity 1)      :chest/epic]]
    [[#(rand-range 2 6)  :monster/spider]
     [#(rand-range 3 8)  :monster/skeleton]
     [#(rand-range 6 10) :monster/zombie]
     [#(rand-range 5 8)  :monster/ghost]
     [#(rand-range 2 6)  :monster/grim-reaper]
-    [2                  :monster/drake]
+    [#(identity 2)      :monster/drake]
     [#(rand-range 1 3)  :chest/common]
     [#(rand-range 2 4)  :chest/uncommon]
     [#(rand-range 1 3)  :chest/rare]
-    [2                  :chest/epic]]
+    [#(identity 2)      :chest/epic]]
    [[#(rand-range 3 5)  :monster/skeleton]
     [#(rand-range 3 6)  :monster/zombie]
     [#(rand-range 2 5)  :monster/ghost]
     [#(rand-range 2 4)  :monster/grim-reaper]
-    [1                  :monster/dragon]]])
+    [#(identity 1)      :monster/dragon]]])
 
 (defn create-entities [area entities [num-fun type]]
   (nth (iterate (partial gen-entity {:type type} area) entities)
