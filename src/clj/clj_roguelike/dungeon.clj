@@ -52,8 +52,8 @@
   (reduce (partial carve-tile id) area indexes))
 
 (defn- within-boundaries? [w h [y x] area]
-  (and (<= (+ h y) (:height area))
-       (<= (+ w x) (:width area))))
+  (and (< 0 y (+ h y) (:height area))
+       (< 0 x (+ w x) (:width area))))
 
 (defn add-room [w h yx area]
   (let [indexes (indexes-rect w h yx (:width area))

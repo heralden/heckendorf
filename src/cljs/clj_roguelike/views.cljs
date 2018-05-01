@@ -24,7 +24,7 @@
 ; image-rendering: -moz-crisp-edges;
 ; image-rendering: -webkit-crisp-edges;
 ; image-rendering: pixelated;
-; image-rendering: crisp-edges;<Paste>
+; image-rendering: crisp-edges;
 (def style-rendering 
   {:image-rendering "-moz-crisp-edges"})
 

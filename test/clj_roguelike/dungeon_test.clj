@@ -8,30 +8,36 @@
        (map :tile)) => (repeat 100 :wall))
 
 (fact "Adds room to an area"
-  (->> (create-area 4 4)
-       (add-room 2 2 [0 0])
+  (->> (create-area 6 6)
+       (add-room 2 2 [1 1])
        :tiles
-       (mapv :tile)) => [:empty :empty :wall  :wall
-                         :empty :empty :wall  :wall
-                         :wall  :wall  :wall  :wall
-                         :wall  :wall  :wall  :wall])
+       (mapv :tile)) => [:wall :wall  :wall  :wall  :wall :wall
+                         :wall :empty :empty :wall  :wall :wall
+                         :wall :empty :empty :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall])
 
 (fact "Does not add overlapping rooms"
-  (->> (create-area 4 4)
-       (add-room 2 2 [0 0])
-       (add-room 2 2 [2 2])
+  (->> (create-area 6 6)
+       (add-room 2 2 [1 1])
+       (add-room 2 2 [3 3])
        :tiles
-       (mapv :tile)) => [:empty :empty :wall  :wall
-                         :empty :empty :wall  :wall
-                         :wall  :wall  :wall  :wall
-                         :wall  :wall  :wall  :wall])
+       (mapv :tile)) => [:wall :wall  :wall  :wall  :wall :wall
+                         :wall :empty :empty :wall  :wall :wall
+                         :wall :empty :empty :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall
+                         :wall :wall  :wall  :wall  :wall :wall])
 
 (fact "Adds additional rooms"
-  (->> (create-area 5 4)
-       (add-room 2 2 [0 0])
-       (add-room 2 2 [2 3])
+  (->> (create-area 7 6)
+       (add-room 2 2 [1 1])
+       (add-room 2 2 [3 4])
        :tiles
-       (mapv :tile)) => [:empty :empty :wall  :wall  :wall
-                         :empty :empty :wall  :wall  :wall
-                         :wall  :wall  :wall  :empty :empty
-                         :wall  :wall  :wall  :empty :empty])
+       (mapv :tile)) => [:wall :wall  :wall  :wall  :wall  :wall  :wall
+                         :wall :empty :empty :wall  :wall  :wall  :wall
+                         :wall :empty :empty :wall  :wall  :wall  :wall
+                         :wall :wall  :wall  :wall  :empty :empty :wall
+                         :wall :wall  :wall  :wall  :empty :empty :wall
+                         :wall :wall  :wall  :wall  :wall  :wall  :wall])

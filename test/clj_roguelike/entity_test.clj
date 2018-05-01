@@ -1,6 +1,5 @@
 (ns clj-roguelike.entity-test
-    (:require [clj-roguelike.dungeon :refer [generate-dungeon yx->m]]
-              [clj-roguelike.entity :refer [rand-coord-tile]]
+    (:require [clj-roguelike.dungeon :refer [generate-dungeon yx->m rand-coord-tile]]
               [midje.sweet :refer :all]))
 
 (def dung (generate-dungeon 25 25 100))
