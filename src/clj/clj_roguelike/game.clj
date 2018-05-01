@@ -44,14 +44,15 @@
     [#(rand-range 2 4)  :monster/grim-reaper]
     [1                  :monster/dragon]]])
 
-(defn create-entities [area [num-fun type]]
-  (->> (repeatedly #(gen-entity {:type type} area))
-       (take (num-fun))))
+(defn create-entities [area entities [num-fun type]]
+  (nth (iterate (partial gen-entity {:type type} area) entities)
+       (num-fun)))
 
 (defn create-game [n floors player]
   (let [area (generate-dungeon 25 25 50)
-        player (if (nil? player) (gen-entity {:type :player} area) player)
-        entities (into [player] (mapcat (partial create-entities area)
-                                        (nth floors n)))]
+        player (if (nil? player) (gen-entity {:type :player} area []) player)
+        entities (reduce (partial create-entities area) 
+                         player
+                         (nth floors n))]
     {:area area
      :entities entities}))
