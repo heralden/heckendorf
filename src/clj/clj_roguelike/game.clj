@@ -1,4 +1,4 @@
-(ns clj-roguelike.core
+(ns clj-roguelike.game
     (:require [clj-roguelike.entity :refer [gen-entity]]
               [clj-roguelike.dungeon :refer [generate-dungeon]]
               [clj-roguelike.random :refer [rand-range]]))
