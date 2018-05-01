@@ -51,7 +51,7 @@
 (defn create-game [n floors player]
   (let [area (generate-dungeon 25 25 50)
         player (if (nil? player) (gen-entity {:type :player} area []) player)
-        entities (reduce (partial create-entities area) 
+        entities (reduce (partial create-entities area)
                          player
                          (nth floors n))]
     {:area area
