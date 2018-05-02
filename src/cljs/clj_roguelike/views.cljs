@@ -25,36 +25,44 @@
 ; image-rendering: -webkit-crisp-edges;
 ; image-rendering: pixelated;
 ; image-rendering: crisp-edges;
-(def style-rendering 
+(def style-rendering
   {:image-rendering "-moz-crisp-edges"})
 
-(def wall-style 
-  (into 
+(defn tile-style [yx]
+  (into
     style-rendering
     {:background-image "url('/images/tileset.png')"
-     :background-position (get-tileset-pos [0 3])
+     :background-position (get-tileset-pos yx)
      :background-size (str tileset-width "px")}))
 
-(def empty-style 
+(def empty-style
   (into
     style-rendering
     {:background-color "white"}))
 
+(defn simplify-keyword [keyw]
+  (if (simple-keyword? keyw)
+    (name keyw)
+    (namespace keyw)))
+
 (defn tile->graphic [width index tile]
-  ^{:key index} 
-  [:div {:style 
+  ^{:key index}
+  [:div {:style
          (into
-           (if (= (:tile tile) :wall)
-             wall-style
-             empty-style)
+           (case (simplify-keyword (:tile tile))
+             "wall"    (tile-style [0 3])
+             "empty"   empty-style
+             "monster" (tile-style [5 4])
+             "chest"   (tile-style [7 5])
+             (tile-style [2 7]))
            {:width (str tile-size "px")
             :height (str tile-size "px")
             :flex-basis (str (* (/ 1 width) 100) "%")})}])
 
 (defn game-tiles []
   (let [{:keys [tiles width]} @(re-frame/subscribe [::subs/game-state])]
-    [:div {:style {:display "flex", 
-                   :flex-wrap "wrap", 
+    [:div {:style {:display "flex",
+                   :flex-wrap "wrap",
                    :width (* tile-size width)}}
      (map-indexed
        (partial tile->graphic width)
