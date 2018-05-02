@@ -8,7 +8,7 @@
     [#(rand-range 0 3)  :monster/skeleton]
     [#(rand-range 2 5)  :chest/common]
     [#(rand-range 0 2)  :chest/uncommon]]
-   [[#(rand-range 6 10) :monter/spider]
+   [[#(rand-range 6 10) :monster/spider]
     [#(rand-range 4 7)  :monster/skeleton]
     [#(rand-range 0 2)  :monster/zombie]
     [#(rand-range 1 3)  :chest/common]
