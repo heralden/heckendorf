@@ -1,6 +1,6 @@
 (ns clj-roguelike.game
     (:require [clj-roguelike.entity :refer [gen-entity]]
-              [clj-roguelike.dungeon :refer [generate-dungeon]]
+              [clj-roguelike.dungeon :refer [generate-dungeon yx->i]]
               [clj-roguelike.random :refer [rand-range]]))
 
 (def floors
@@ -56,3 +56,12 @@
                          (nth floors n))]
     {:area area
      :entities entities}))
+
+(defn normalize-game [game]
+  "Merges the :entity vector into the :area:tiles vector according to coordinates"
+  (reduce (fn [area entity]
+              (assoc-in area
+                        [:tiles (yx->i (:width area) (:yx entity)) :tile]
+                        (:type entity)))
+          (:area game)
+          (:entities game)))

@@ -8,7 +8,7 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.dungeon :refer [generate-dungeon]]))
+              [clj-roguelike.game :refer [create-game normalize-game floors]]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -46,7 +46,7 @@
 (defmulti -event-msg-handler
   "Multimethod to handle Sente `event-msg`s"
   :id)
- 
+
 (defn event-msg-handler
   "Wraps `-event-msg-handler` with logging, error catching, etc."
   [{:as ev-msg :keys [id ?data event]}]
@@ -63,7 +63,7 @@
 
 (defmethod -event-msg-handler :game/start
   [{:as ev-msg :keys [?reply-fn]}]
-  (?reply-fn (generate-dungeon 25 25 100)))
+  (?reply-fn (normalize-game (create-game (rand-int 6) floors nil))))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-fn @router_] (stop-fn)))
@@ -87,8 +87,8 @@
     (reset! web-server_ stop-fn)))
 
 (defn stop! [] (stop-router!) (stop-web-server!))
-(defn start! [] 
-  (start-router!) 
+(defn start! []
+  (start-router!)
   (start-web-server!))
 
 (defn -main "For `lein run`, etc." [] (start!))
