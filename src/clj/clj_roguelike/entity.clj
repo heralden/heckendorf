@@ -30,6 +30,12 @@
           :equipped :none}
          data))
 
+(defmethod gen-entity :stair-down [& data]
+  (apply entity-with {} data))
+
+(defmethod gen-entity :stair-up [& data]
+  (apply entity-with {} data))
+
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
          {:hp (rand-range 6 10)

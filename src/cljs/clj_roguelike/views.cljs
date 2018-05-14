@@ -50,11 +50,14 @@
   [:div {:style
          (into
            (case (simplify-keyword (:tile tile))
-             "wall"    (tile-style [0 3])
-             "empty"   empty-style
-             "monster" (tile-style [5 4])
-             "chest"   (tile-style [7 5])
-             (tile-style [2 7]))
+             "empty"      empty-style
+             "wall"       (tile-style [0 3])
+             "monster"    (tile-style [5 4])
+             "chest"      (tile-style [7 5])
+             "stair-down" (tile-style [6 7])
+             "stair-up"   (tile-style [6 6])
+             "player"     (tile-style [2 7])
+             (tile-style [0 0]))
            {:width (str tile-size "px")
             :height (str tile-size "px")
             :flex-basis (str (* (/ 1 width) 100) "%")})}])
