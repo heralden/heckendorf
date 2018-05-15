@@ -87,8 +87,9 @@
     (reset! web-server_ stop-fn)))
 
 (defn stop! [] (stop-router!) (stop-web-server!))
-(defn start! []
-  (start-router!)
-  (start-web-server!))
+(defn start! [args]
+  (let [port (if (= args '("prod")) 80 9090)]
+    (start-router!)
+    (start-web-server! port)))
 
-(defn -main "For `lein run`, etc." [] (start!))
+(defn -main "For `lein run`, etc." [& args] (start! args))
