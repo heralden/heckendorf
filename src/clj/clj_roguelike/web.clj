@@ -75,9 +75,9 @@
 
 (defonce web-server_ (atom nil))
 (defn stop-web-server! [] (when-let [stop-fn @web-server_] (stop-fn)))
-(defn start-web-server! [& [port]]
+(defn start-web-server! [dev?]
   (stop-web-server!)
-  (let [port (or port 0)
+  (let [port (if dev? 9090 80)
         ring-handler (var main-ring-handler)
         [port stop-fn]
         (let [stop-fn (http-kit/run-server ring-handler {:port port})]
@@ -86,10 +86,12 @@
     (infof "Web server is running at `%s`" uri)
     (reset! web-server_ stop-fn)))
 
+(defn in-dev? [args]
+  (not= args '("prod")))
+
 (defn stop! [] (stop-router!) (stop-web-server!))
 (defn start! [args]
-  (let [port (if (= args '("prod")) 80 9090)]
-    (start-router!)
-    (start-web-server! port)))
+  (start-router!)
+  (start-web-server! (in-dev? args)))
 
 (defn -main "For `lein run`, etc." [& args] (start! args))
