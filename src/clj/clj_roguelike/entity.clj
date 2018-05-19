@@ -1,16 +1,41 @@
 (ns clj-roguelike.entity
     (:require [clj-roguelike.random :refer [rand-range]]
-              [clj-roguelike.dungeon :refer [rand-coord-tile]]))
+              [clj-roguelike.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]))
 
-(defn unique-yx [area yxs-set]
-  (let [yx (rand-coord-tile :empty area)]
-    (if (contains? yxs-set yx)
-      (recur area yxs-set)
-      yx)))
+(def spaced-tile?
+  (complement edge-tile?))
+
+(defn simplify-keyword [keyw]
+  "Returns a string of the namespace, if the keyword is namespaced; otherwise return string of keyword"
+  (if (simple-keyword? keyw)
+    (name keyw)
+    (namespace keyw)))
+
+(def spacious-types
+  "Set of entity types that shouldn't be placed near a wall"
+  #{"chest" "stair-down" "stair-up"})
+
+(defn spacious-type? [type]
+  (contains? spacious-types
+             (simplify-keyword type)))
+
+(defn unique-yx [area entity-type yxs-set]
+  (let [yx (rand-coord-tile :empty area)
+        unique? (not (contains? yxs-set yx))
+        space? (if (spacious-type? entity-type)
+                 (spaced-tile? neighboring-tiles
+                               (yx->i (:width area) yx)
+                               area)
+                 true)]
+    (if (and unique? space?)
+      yx
+      (recur area entity-type yxs-set))))
 
 (defn entity-with [props m area entities]
   (->> props
-       (into {:yx (unique-yx area (set (map :yx entities)))})
+       (into {:yx (unique-yx area
+                             (:type m)
+                             (set (map :yx entities)))})
        (into m)
        (conj entities)))
 

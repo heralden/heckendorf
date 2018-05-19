@@ -79,17 +79,33 @@
     (->> [[(dec y) x]     ; North
           [y (inc x)]     ; East
           [(inc y) x]     ; South
-          [y (dec x)]]    ; West 
+          [y (dec x)]]    ; West
          (map (partial yx->i w))
-         (filter (complement neg?))))) 
+         (filter (complement neg?)))))
 
-(defn- edge-tile? [index area]
+(defn neighboring-tiles [index area]
+  (let [w (:width area)
+        [y x] (i->yx w index)]
+    (->> [[(dec y) x]        ; north
+          [(dec y) (inc x)]  ; north-east
+          [y (inc x)]        ; east
+          [(inc y) (inc x)]  ; south-east
+          [(inc y) x]        ; south
+          [(inc y) (dec x)]  ; south-west
+          [y (dec x)]        ; west
+          [(dec y) (dec x)]] ; north-west
+         (map (partial yx->i w))
+         (filter (complement neg?)))))
+
+(defn edge-tile? [tile-f index area]
   (and (empty-tile? area index)
        (some (partial wall-tile? area)
-             (adjacent-tiles index area))))
+             (tile-f index area))))
 
 (defn- edge-tiles [area]
-  (keep-indexed (fn [index _] (when (edge-tile? index area) index))
+  (keep-indexed (fn [index _]
+                    (when (edge-tile? adjacent-tiles index area)
+                      index))
                 (:tiles area)))
 
 (defn- corner-tile? [index area]
