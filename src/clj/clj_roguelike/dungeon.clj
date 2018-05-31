@@ -38,10 +38,10 @@
   (map (partial + start) (range 0 amount)))
 
 (defn- indexes-rect [w h [y x] area-width]
-  (let [ys (take-nums y h) 
+  (let [ys (take-nums y h)
         xs (take-nums x w)]
-    (for [y ys x xs] 
-      (yx->i area-width [y x])))) 
+    (for [y ys x xs]
+      (yx->i area-width [y x]))))
 
 (defn- carve-tile [id area index]
   (-> area
@@ -121,7 +121,7 @@
 (defn- walk-until [pred [w h] yxs dir]
   (let [next-yx (mapv + (first yxs) dir)
         next-i (yx->i w next-yx)]
-    (cond 
+    (cond
       (or (neg? next-i)
           (<= (* w h) next-i)) nil
       (pred next-i) (cons next-yx yxs)
@@ -134,7 +134,7 @@
          (adjacent-walls index)
          (map (partial i->yx w))
          (map #(mapv - %2 %1) (repeat yx))
-         (map (partial walk-until 
+         (map (partial walk-until
                        (partial empty-tile? area)
                        [w (:height area)]
                        [yx])))))
@@ -144,8 +144,8 @@
      (:id (yx->m yx2 area))))
 
 (defn- swap-id [old new area]
-  (assoc area 
-         :tiles 
+  (assoc area
+         :tiles
          (mapv #(if (= old (:id %))
                  (assoc % :id new)
                  %)
@@ -156,7 +156,7 @@
         byx (last yxs)
         old-id (:id (yx->m ayx area))
         id (:id (yx->m byx area))
-        indexes (map (partial yx->i (:width area)) 
+        indexes (map (partial yx->i (:width area))
                      (drop-last (rest yxs)))]
     (if (same-id? ayx byx area)
       (if (perc-chance additional-tunnel-perc)
@@ -193,7 +193,7 @@
 
 (defn- generate-corridors [area]
   (->> area
-       edge-tiles 
+       edge-tiles
        shuffle
        (reduce create-corridors area)))
 
@@ -218,3 +218,51 @@
            tile)
       (i->yx (:width area) i)
       (recur tile area))))
+
+; For the following code, remember to:
+; - Consider moving it to a new file (geometry.clj?)
+; - Add doc strings
+; - Write pretty-print/illustrative function for complete-pivot data to test it
+; - Write actual tests
+
+(defn- add-y [[y x] n] [(+ y n) x])
+(defn- add-x [[y x] n] [y (+ x n)])
+(defn- sub-y [[y x] n] [(- y n) x])
+(defn- sub-x [[y x] n] [y (- x n)])
+
+(defn- pos-line-y [len [y x]]
+  (map (fn [rising-y] [rising-y x])
+       (range y (+ y len))))
+(defn- pos-line-x [len [y x]]
+  (map (fn [rising-x] [y rising-x])
+       (range x (+ x len))))
+(defn- neg-line-y [len [y x]]
+  (map (fn [falling-y] [falling-y x])
+       (range y (- y len) -1)))
+(defn- neg-line-x [len [y x]]
+  (map (fn [falling-x] [y falling-x])
+       (range x (- x len) -1)))
+
+(defn eighth-pivot [x]
+  (reductions #(update %1 %2 inc)
+              (vec (repeat x 0))
+              (mapcat #(-> % (range x) reverse)
+                      (range 1 x))))
+
+(defn apply-pivot-yx
+  [pivot-f line-f add-coord-f len origo-yx]
+  (mapv (partial mapv add-coord-f)
+        (repeat (line-f len origo-yx))
+        (pivot-f len)))
+
+(defn complete-pivot [len origo-yx]
+  (let [apply-eighth-pivot (partial apply-pivot-yx eighth-pivot)]
+    (conj []
+          (apply-eighth-pivot neg-line-y add-x len origo-yx)
+          (apply-eighth-pivot pos-line-x sub-y len origo-yx)
+          (apply-eighth-pivot pos-line-x add-y len origo-yx)
+          (apply-eighth-pivot pos-line-y add-x len origo-yx)
+          (apply-eighth-pivot pos-line-y sub-x len origo-yx)
+          (apply-eighth-pivot neg-line-x add-y len origo-yx)
+          (apply-eighth-pivot neg-line-x sub-y len origo-yx)
+          (apply-eighth-pivot neg-line-y sub-x len origo-yx))))
