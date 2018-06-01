@@ -12,7 +12,9 @@
 
 # Later
 
-## Review protocols and records and find a use for them (maybe in multimethods?)
+## Replace data hash maps with records for performance and documentation improvement
+
+## Review protocols and find a use for them (maybe in multimethods?)
 
 ## Handle case where unique-yx will enter an infinite loop if the dungeon map is too small (set a limit on max attempts and find out what to do when that limit is reached)
 

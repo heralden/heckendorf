@@ -34,6 +34,17 @@
 (defn- wall-tile? [area index]
   (= :wall (:tile (i->m index area))))
 
+(defn out-of-bounds? [w h i]
+  "Checks whether an index is invalid for the area width and height"
+  (or (neg? i)
+      (>= i (* w h))))
+
+(defn solid-yx? [area yx]
+  "Checks whether a coordinate is a wall tile or out of bounds"
+  (let [[w h] ((juxt :width :height) area)]
+    (or (= (:tile (yx->m yx area)) :wall)
+        (out-of-bounds? w h (yx->i w yx)))))
+
 (defn- take-nums [start amount]
   (map (partial + start) (range 0 amount)))
 
@@ -122,8 +133,7 @@
   (let [next-yx (mapv + (first yxs) dir)
         next-i (yx->i w next-yx)]
     (cond
-      (or (neg? next-i)
-          (<= (* w h) next-i)) nil
+      (out-of-bounds? w h next-i) nil
       (pred next-i) (cons next-yx yxs)
       :else (recur pred [w h] (cons next-yx yxs) dir))))
 
@@ -221,9 +231,11 @@
 
 ; For the following code, remember to:
 ; - Consider moving it to a new file (geometry.clj?)
-; - Add doc strings
 ; - Write pretty-print/illustrative function for complete-pivot data to test it
 ; - Write actual tests
+
+
+;; Auxiliary functions for working with coordinates
 
 (defn- add-y [[y x] n] [(+ y n) x])
 (defn- add-x [[y x] n] [y (+ x n)])
@@ -243,26 +255,58 @@
   (map (fn [falling-x] [y falling-x])
        (range x (- x len) -1)))
 
-(defn eighth-pivot [x]
+(defn eighth-pivot [n]
+  "Creates a list of vectors of numbers from origo to n distance,
+  which will create a gradual 45 degree pivot from origo when
+  applied to coordinates"
   (reductions #(update %1 %2 inc)
-              (vec (repeat x 0))
-              (mapcat #(-> % (range x) reverse)
-                      (range 1 x))))
+              (vec (repeat n 0))
+              (mapcat #(-> % (range n) reverse)
+                      (range 1 n))))
 
 (defn apply-pivot-yx
+  "Takes multiple functions to apply pivot-f to a line from origo-yx"
   [pivot-f line-f add-coord-f len origo-yx]
   (mapv (partial mapv add-coord-f)
         (repeat (line-f len origo-yx))
         (pivot-f len)))
 
 (defn complete-pivot [len origo-yx]
+  "Creates nested vectors of a complete 360 degree pivot.
+  Every other 45 degree section will have its last path vector
+  popped, as it will overlap with the previous section."
   (let [apply-eighth-pivot (partial apply-pivot-yx eighth-pivot)]
-    (conj []
-          (apply-eighth-pivot neg-line-y add-x len origo-yx)
-          (apply-eighth-pivot pos-line-x sub-y len origo-yx)
-          (apply-eighth-pivot pos-line-x add-y len origo-yx)
-          (apply-eighth-pivot pos-line-y add-x len origo-yx)
-          (apply-eighth-pivot pos-line-y sub-x len origo-yx)
-          (apply-eighth-pivot neg-line-x add-y len origo-yx)
-          (apply-eighth-pivot neg-line-x sub-y len origo-yx)
-          (apply-eighth-pivot neg-line-y sub-x len origo-yx))))
+    (concat
+      (apply-eighth-pivot neg-line-y add-x len origo-yx)
+      (pop (apply-eighth-pivot pos-line-x sub-y len origo-yx))
+      (apply-eighth-pivot pos-line-x add-y len origo-yx)
+      (pop (apply-eighth-pivot pos-line-y add-x len origo-yx))
+      (apply-eighth-pivot pos-line-y sub-x len origo-yx)
+      (pop (apply-eighth-pivot neg-line-x add-y len origo-yx))
+      (apply-eighth-pivot neg-line-x sub-y len origo-yx)
+      (pop (apply-eighth-pivot neg-line-y sub-x len origo-yx)))))
+
+(defn trace-path-until [pred yxs]
+  "Walks through the yxs vector of coordinates until either
+  exhausting it or until pred returns true for a tile map. It
+  will then return a vector of the elements traversed until
+  that point. Basically a short-circuiting filter."
+  (reduce (fn [acc yx]
+            (if (pred yx)
+              (reduced acc)
+              (conj acc yx)))
+          [] yxs))
+
+(defn prune-paths [pred paths]
+  "Uses trace-path-until to prune all paths according to predicate."
+  (mapv (partial trace-path-until pred)
+        paths))
+
+(defn line-of-sight [area len origo-yx]
+  "Returns a set of coordinates that are within the line of sight
+  of origo-yx with a range of len in area"
+  (->> (complete-pivot len origo-yx)
+       (prune-paths (partial solid-yx? area))
+       (apply concat)
+       set))
+
