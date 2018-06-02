@@ -9,10 +9,10 @@
 (defn- new-id []
   (swap! current-id inc))
 
-(defn create-area [w h]
+(defn create-area [w h tile]
   {:width w
    :height h
-   :tiles (vec (repeat (* w h) {:tile :wall}))})
+   :tiles (vec (repeat (* w h) {:tile tile}))})
 
 (defn i->yx [w i]
   [(int (/ i w)) (mod i w)])
@@ -39,9 +39,13 @@
   (or (neg? i)
       (>= i (* w h))))
 
+(defn get-wh [area]
+  "Returns a vector [width height] of area"
+  ((juxt :width :height) area))
+
 (defn solid-yx? [area yx]
   "Checks whether a coordinate is a wall tile or out of bounds"
-  (let [[w h] ((juxt :width :height) area)]
+  (let [[w h] (get-wh area)]
     (or (= (:tile (yx->m yx area)) :wall)
         (out-of-bounds? w h (yx->i w yx)))))
 
@@ -208,7 +212,7 @@
        (reduce create-corridors area)))
 
 (defn generate-dungeon [w h room-attempts]
-  (let [dung (->> (create-area w h)
+  (let [dung (->> (create-area w h :wall)
                   (generate-rooms room-attempts)
                   (generate-corridors))]
     (if (valid-dungeon? dung)
@@ -217,8 +221,9 @@
 
 (defn pretty-print [area]
   (->> (map :tile (:tiles area))
-       (map #(cond (= % :wall) :#
-                   (= % :empty) :.))
+       (map #(cond (= % :wall)  :#
+                   (= % :empty) :.
+                   (= % :dark)  :X))
        (partition (:width area))
        clojure.pprint/pprint))
 
@@ -310,3 +315,34 @@
        (apply concat)
        set))
 
+(defn apply-tile-idx [tile area idx]
+  "Apply the tile to the specified index in area"
+  (assoc-in area [:tiles idx :tile] tile))
+
+(defn apply-tile-idxs [tile area idxs]
+  "Apply the tile to a vector of indexes in area"
+  (reduce (partial apply-tile-idx tile) area idxs))
+
+(defn copy-tile-idx [from-area to-area idx]
+  "Copy a tile at index from one area to another"
+  (let [tile (:tile (i->m idx from-area))]
+    (apply-tile-idx tile to-area idx)))
+
+(defn darken-other-idxs [area los-idxs]
+  "Create a new area with all tiles except los-idxs replaced by :dark tiles"
+  (let [[w h] (get-wh area)]
+    (reduce (partial copy-tile-idx area)
+            (create-area w h :dark)
+            los-idxs)))
+
+(defn apply-los-darken [area los-yxs]
+  "Apply los-yxs returned by line-of-sight to area"
+  (let [[w _] (get-wh area)
+        idxs (map (partial yx->i w) los-yxs)]
+    (darken-other-idxs area idxs)))
+
+(defn darken-dungeon [area len origo-yx]
+  "Return area with :dark tiles applied outside line of sight"
+  (apply-los-darken 
+    area
+    (line-of-sight area len origo-yx)))
