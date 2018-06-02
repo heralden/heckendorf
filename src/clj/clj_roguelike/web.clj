@@ -8,7 +8,7 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.game :refer [create-game normalize-game floors]]))
+              [clj-roguelike.game :refer [game->web]]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -63,7 +63,7 @@
 
 (defmethod -event-msg-handler :game/start
   [{:as ev-msg :keys [?reply-fn]}]
-  (?reply-fn (normalize-game (create-game (rand-int 6) floors nil))))
+  (?reply-fn (game->web)))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-fn @router_] (stop-fn)))

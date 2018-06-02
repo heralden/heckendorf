@@ -1,9 +1,9 @@
 (ns clj-roguelike.dungeon
   (:require [clj-roguelike.random :refer [rand-range perc-chance]]))
 
-(def additional-tunnel-perc 10)
-(def min-room-length 2)
-(def max-room-length 9)
+(def ^:const additional-tunnel-perc 10)
+(def ^:const min-room-length 2)
+(def ^:const max-room-length 9)
 
 (def current-id (atom 0))
 (defn- new-id []
@@ -343,6 +343,6 @@
 
 (defn darken-dungeon [area len origo-yx]
   "Return area with :dark tiles applied outside line of sight"
-  (apply-los-darken 
+  (apply-los-darken
     area
     (line-of-sight area len origo-yx)))

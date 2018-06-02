@@ -52,6 +52,7 @@
            (case (simplify-keyword (:tile tile))
              "empty"      empty-style
              "wall"       (tile-style [0 3])
+             "dark"       (tile-style [3 3])
              "monster"    (tile-style [5 4])
              "chest"      (tile-style [7 5])
              "stair-down" (tile-style [6 7])

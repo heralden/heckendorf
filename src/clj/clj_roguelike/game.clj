@@ -1,7 +1,12 @@
 (ns clj-roguelike.game
     (:require [clj-roguelike.entity :refer [gen-entity]]
-              [clj-roguelike.dungeon :refer [generate-dungeon yx->i]]
+              [clj-roguelike.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
               [clj-roguelike.random :refer [rand-range]]))
+
+(def ^:const area-width 30)
+(def ^:const area-height 30)
+(def ^:const room-attempts 50)
+(def ^:const sight-range 8)
 
 (defn- rvec [v]
   "Reverses, and returns a vector"
@@ -70,7 +75,7 @@
        (num-fun)))
 
 (defn create-game [n floors player]
-  (let [area (generate-dungeon 30 30 50)
+  (let [area (generate-dungeon area-width area-height room-attempts)
         player (if (nil? player) (gen-entity {:type :player} area []) player)
         entities (reduce (partial create-entities area)
                          player
@@ -86,3 +91,15 @@
                         (:type entity)))
           (:area game)
           (:entities game)))
+
+(defn darken-game [area player-yx]
+  "Darken a normalized game from the viewpoint of player-yx"
+  (darken-dungeon area sight-range player-yx))
+
+(defn game->web []
+  (let [game (create-game (rand-int 6) floors nil)
+        player-yx (->> game :entities (filter #(= (:type %) :player)) first :yx)]
+    (-> game
+        normalize-game
+        (darken-game player-yx))))
+
