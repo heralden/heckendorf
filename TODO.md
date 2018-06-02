@@ -1,14 +1,8 @@
 # Doing
 
-## Write a line-of-sight function to reduce dungeon to only tiles that are visible to the entity's coordinates (only monsters in perception of player will be sent to the client)
-### line-of-sight [area range yx]
-1. **sight-yxs**: A vector of yxs that have a @range distance from @yx in @area (essentially the outlines of a circle)
-2. **sight-line**: Draw a line (vector) from @yx to each of #sight-yxs, exiting prematurely only if it meets a :wall tile
-  - fn: trace-path
-3. All tiles *except* those that #sight-line traverses, will be replaced by the :dark tile
+## Refactor, add docstrings, and encapsulate (into different files?) the functionality in dungeon.clj. Also please write tests.
 
 ## A tick is done every time the player moves (use event-sourcing to compute the current state of the game)
-
 
 # Later
 
@@ -29,3 +23,8 @@
 # Assets
 
 ## For enemy sprites, rip from Dragon Slayer GB release
+
+# Completed
+
+## Write a line-of-sight function to reduce dungeon to only tiles that are visible to the entity's coordinates (only monsters in perception of player will be sent to the client)
+

@@ -234,12 +234,6 @@
       (i->yx (:width area) i)
       (recur tile area))))
 
-; For the following code, remember to:
-; - Consider moving it to a new file (geometry.clj?)
-; - Write pretty-print/illustrative function for complete-pivot data to test it
-; - Write actual tests
-
-
 ;; Auxiliary functions for working with coordinates
 
 (defn- add-y [[y x] n] [(+ y n) x])
@@ -294,12 +288,13 @@
 (defn trace-path-until [pred yxs]
   "Walks through the yxs vector of coordinates until either
   exhausting it or until pred returns true for a tile map. It
-  will then return a vector of the elements traversed until
-  that point. Basically a short-circuiting filter."
+  will then return a vector of the elements up to and including
+  that element."
   (reduce (fn [acc yx]
-            (if (pred yx)
-              (reduced acc)
-              (conj acc yx)))
+              (let [next-acc (conj acc yx)]
+                (if (pred yx)
+                  (reduced next-acc)
+                  next-acc)))
           [] yxs))
 
 (defn prune-paths [pred paths]

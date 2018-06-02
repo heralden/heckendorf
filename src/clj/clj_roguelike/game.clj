@@ -6,7 +6,7 @@
 (def ^:const area-width 30)
 (def ^:const area-height 30)
 (def ^:const room-attempts 50)
-(def ^:const sight-range 8)
+(def ^:const sight-range 15)
 
 (defn- rvec [v]
   "Reverses, and returns a vector"
