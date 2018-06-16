@@ -5,4 +5,6 @@
 out
 /.lein-repl-history
 /.nrepl-port
-.cljs_rhino_repl/
+/.cljs_rhino_repl/
+/.cljs_nashorn_repl/
+/nashorn_code_cache/
