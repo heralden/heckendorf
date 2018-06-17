@@ -5,9 +5,11 @@
 (def ^:const min-room-length 2)
 (def ^:const max-room-length 9)
 
-(def current-id (atom 0))
-(defn- new-id []
-  (swap! current-id inc))
+(let [i (atom 0)]
+  (defn- new-id
+    "Returns a distinct numeric ID for each call."
+    []
+    (swap! i inc)))
 
 (defn create-area [w h tile]
   {:width w
