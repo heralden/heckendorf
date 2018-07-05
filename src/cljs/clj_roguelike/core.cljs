@@ -9,16 +9,30 @@
             [taoensso.sente :as sente :refer (cb-success?)]))
 
 (let [{:keys [chsk ch-recv send-fn state]}
-      (sente/make-channel-socket! "/chsk"
-                                  {:type :auto })]
+      (sente/make-channel-socket! "/chsk" {:type :auto })]
   (def chsk chsk)
   (def ch-chsk ch-recv)
   (def chsk-send! send-fn)
   (def chsk-state state))
 
+(defn update-game-board! [game-board]
+  (re-frame/dispatch [::events/game-state game-board]))
+
+(defn handle-keys [e]
+  (let [send! #(chsk-send! [:game/action {:type :walk, :dir %}]
+                          5000
+                          update-game-board!)]
+    (case (.-key e)
+      "ArrowLeft"  (send! :west)
+      "ArrowRight" (send! :east)
+      "ArrowUp"    (send! :north)
+      "ArrowDown"  (send! :south))))
+
 (defn request-game-board! []
   (chsk-send! [:game/start] 5000
-    (fn [game-board] (re-frame/dispatch [::events/game-state game-board]))))
+    (fn [game-board]
+        (update-game-board! game-board)
+        (.addEventListener js/document "keydown" handle-keys))))
 
 (defmulti -event-msg-handler :id)
 

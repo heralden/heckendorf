@@ -96,10 +96,12 @@
   "Darken a normalized game from the viewpoint of player-yx"
   (darken-dungeon area sight-range player-yx))
 
-(defn game->web []
-  (let [game (create-game (rand-int 6) floors nil)
-        player-yx (->> game :entities (filter #(= (:type %) :player)) first :yx)]
-    (-> game
-        normalize-game
-        (darken-game player-yx))))
-
+(let [game (atom (create-game (rand-int 6) floors nil))]
+  (defn game->web []
+    (let [next-game (swap! game effect-all)
+          player-yx (->> next-game :entities (filter #(= (:type %) :player)) first :yx)]
+      (-> next-game
+          normalize-game
+          (darken-game player-yx))))
+  (defn dispatch-action [action]
+    (dispatch action game)))

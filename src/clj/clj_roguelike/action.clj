@@ -11,6 +11,25 @@
 ; {:type :attack}
 ; {:type :use} ; using potions or equipping items
 
+(defmulti dispatch
+  (fn [action _entity] (:type action)))
+
+;; TODO: When an action is dispatched, it will be added in queue
+;; as next-action in the player entity. All entities are ticked
+;; down until it's finally executed. (done in `game->web`) Then
+;; the new game is sent to the client.
+
+(defmethod dispatch :walk
+  [{:keys [dir]} entity]
+  (update entity
+          :yx
+          (fn [[y x]]
+              (case (name dir)
+                "north" [(dec y) x]
+                "east"  [y (inc x)]
+                "south" [(inc y) x]
+                "west"  [y (dec x)]))))
+
 #_(defn- valid-action? [action])
 
 #_(defn- effect [state action])
@@ -24,7 +43,7 @@
 
 ;;; All living entities have a `:ticks` key in their entity map, which is
 ;;; based on the entity's `:spd` value. The value of `:ticks` represents the
-;;; remaining amount of ticks before the entity is allowed to initiate a new 
+;;; remaining amount of ticks before the entity is allowed to initiate a new
 ;;; action.
 
 (def ^:const base-speed
@@ -39,34 +58,42 @@
       double
       Math/round))
 
+(defn- should-tick?
+  "Returns whether the `entity` type allows ticking."
+  [entity]
+  (= (namespace (:type entity)) "monster"))
+
 (defn- reset-ticks
   "Sets the initial remaining ticks to an `entity` depending on its spd."
   [entity]
-  (let [ticks (ticks-per-action (:spd entity))]
-    (assoc entity :ticks ticks)))
+  (if (should-tick? entity)
+    (assoc entity :ticks (ticks-per-action (:spd entity)))
+    entity))
 
 (defn reset-ticks-all
   "`reset-ticks` on a sequence of `entities`."
   [entities]
   (map reset-ticks entities))
 
-(defn- valid-entity?
-  "Returns true if `entity` is tickable."
+(defn- has-ticks?
+  "Returns true if `entity` has ticks key defined."
   [entity]
   (boolean (:ticks entity)))
 
-(defn- tick 
+(defn- tick
   "Initiates a single tick to `entity`."
   [entity]
-  (let [next-entity (update entity :ticks dec)]
-    (if (zero? (:ticks next-entity))
-      (reset-ticks entity) ; also initiate action here
-      next-entity)))
+  (if (should-tick? entity)
+    (let [next-entity (update entity :ticks dec)]
+      (if (zero? (:ticks next-entity))
+        (reset-ticks entity) ; also initiate action here
+        next-entity))
+    entity))
 
 (defn- apply-tick
   "Safely applies `tick` to `entity`, resetting the key if not defined."
   [entity]
-  (if (valid-entity? entity)
+  (if (has-ticks? entity)
     (tick entity)
     (tick (reset-ticks entity))))
 
