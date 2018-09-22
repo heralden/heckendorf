@@ -1,7 +1,8 @@
 (ns clj-roguelike.game
-    (:require [clj-roguelike.entity :refer [gen-entity]]
+    (:require [clj-roguelike.entity :refer [gen-entity reset-id]]
               [clj-roguelike.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
-              [clj-roguelike.random :refer [rand-range]]))
+              [clj-roguelike.random :refer [rand-range]]
+              [clj-roguelike.action :refer [effect-all]]))
 
 (def ^:const area-width 30)
 (def ^:const area-height 30)
@@ -75,6 +76,8 @@
        (num-fun)))
 
 (defn create-game [n floors player]
+  ;; ID should correspond to the entity's vector index.
+  (reset-id (if (nil? player) -1 0))
   (let [area (generate-dungeon area-width area-height room-attempts)
         player (if (nil? player) (gen-entity {:type :player} area []) player)
         entities (reduce (partial create-entities area)
@@ -96,12 +99,18 @@
   "Darken a normalized game from the viewpoint of player-yx"
   (darken-dungeon area sight-range player-yx))
 
-(let [game (atom (create-game (rand-int 6) floors nil))]
+(defn prepare-game [game]
+  (let [player-yx (-> game :entities (get 0) :yx)]
+    (-> game
+        normalize-game
+        (darken-game player-yx))))
+
+(let [game-atom (atom (create-game (rand-int 6) floors nil))]
   (defn game->web []
-    (let [next-game (swap! game effect-all)
-          player-yx (->> next-game :entities (filter #(= (:type %) :player)) first :yx)]
-      (-> next-game
-          normalize-game
-          (darken-game player-yx))))
-  (defn dispatch-action [action]
-    (dispatch action game)))
+    (prepare-game @game-atom))
+  (defn queue-action [entity-id action reply-fn]
+    (let [assoc-action #(assoc-in % [:entities entity-id :next-action] action)
+          update-fun (comp effect-all assoc-action)]
+      (-> (swap! game-atom update-fun)
+          prepare-game
+          reply-fn))))

@@ -2,6 +2,16 @@
     (:require [clj-roguelike.random :refer [rand-range]]
               [clj-roguelike.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]))
 
+(let [i (atom -1)]
+  (defn- new-id
+    "Returns a distinct numeric ID for each call."
+    []
+    (swap! i inc))
+  (defn reset-id
+    "Reset id for use when a new batch of entities is created."
+    [x]
+    (reset! i x)))
+
 (def spaced-tile?
   (complement edge-tile?))
 
@@ -33,7 +43,8 @@
 
 (defn entity-with [props m area entities]
   (->> props
-       (into {:yx (unique-yx area
+       (into {:id (new-id)
+              :yx (unique-yx area
                              (:type m)
                              (set (map :yx entities)))})
        (into m)

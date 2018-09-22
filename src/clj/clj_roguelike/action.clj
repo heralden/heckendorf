@@ -1,6 +1,5 @@
-(ns clj-roguelike.action)
-
-;;;; Using event sourcing to interact with game state
+(ns clj-roguelike.action
+    (:require [clj-roguelike.entity :refer [simplify-keyword]]))
 
 ;; Temporary sketch of actions
 ; {:type :move}
@@ -12,15 +11,10 @@
 ; {:type :use} ; using potions or equipping items
 
 (defmulti dispatch
-  (fn [action _entity] (:type action)))
-
-;; TODO: When an action is dispatched, it will be added in queue
-;; as next-action in the player entity. All entities are ticked
-;; down until it's finally executed. (done in `game->web`) Then
-;; the new game is sent to the client.
+  (fn [entity] (-> entity :next-action :type)))
 
 (defmethod dispatch :walk
-  [{:keys [dir]} entity]
+  [{{:keys [dir]} :next-action, :as entity}]
   (update entity
           :yx
           (fn [[y x]]
@@ -30,14 +24,19 @@
                 "south" [(inc y) x]
                 "west"  [y (dec x)]))))
 
-#_(defn- valid-action? [action])
+(declare tick-all)
+(declare ticks-per-action)
 
-#_(defn- effect [state action])
-
-#_(defn apply-effect [state action])
-
-#_(defn effect-all [state actions]
-  (reduce apply-effect state actions))
+(defn effect-all [game]
+  (update-in game
+             [:entities]
+             (fn [[player :as entities]]
+                 (loop [ticks-until (ticks-per-action (:spd player))
+                        entities entities]
+                   (if (zero? ticks-until)
+                     entities
+                     (recur (dec ticks-until)
+                            (tick-all entities)))))))
 
 ;;;; Entity ticks for initiating actions/events
 
@@ -50,6 +49,10 @@
   "All speeds are relative to this value."
   10)
 
+(def ^:const tickable-entities
+  "Entity namespaces/simple keywords that `should-tick?`."
+  #{"monster" "player"})
+
 (defn- ticks-per-action
   "Computes the amount of ticks between each action for `spd`."
   [spd]
@@ -61,7 +64,7 @@
 (defn- should-tick?
   "Returns whether the `entity` type allows ticking."
   [entity]
-  (= (namespace (:type entity)) "monster"))
+  (contains? tickable-entities (simplify-keyword (:type entity))))
 
 (defn- reset-ticks
   "Sets the initial remaining ticks to an `entity` depending on its spd."
@@ -73,7 +76,7 @@
 (defn reset-ticks-all
   "`reset-ticks` on a sequence of `entities`."
   [entities]
-  (map reset-ticks entities))
+  (mapv reset-ticks entities))
 
 (defn- has-ticks?
   "Returns true if `entity` has ticks key defined."
@@ -85,8 +88,10 @@
   [entity]
   (if (should-tick? entity)
     (let [next-entity (update entity :ticks dec)]
-      (if (zero? (:ticks next-entity))
-        (reset-ticks entity) ; also initiate action here
+      (if (and (zero? (:ticks next-entity))
+               (zero? (:id next-entity)))
+        ;; It's the player.
+        (reset-ticks (dispatch entity))
         next-entity))
     entity))
 
@@ -100,4 +105,4 @@
 (defn tick-all
   "`apply-tick` to all `entities`."
   [entities]
-  (map apply-tick entities))
+  (mapv apply-tick entities))
