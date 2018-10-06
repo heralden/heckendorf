@@ -1,5 +1,28 @@
 (ns clj-roguelike.action
-    (:require [clj-roguelike.entity :refer [simplify-keyword]]))
+    (:require [clj-roguelike.entity :refer [simplify-keyword]]
+              [clj-roguelike.dungeon :refer [yx->m]]))
+
+(declare tick-all)
+(declare ticks-per-action)
+(declare dispatch)
+
+(defn effect-all [game]
+  (update-in game
+             [:entities]
+             (fn [[player :as entities]]
+                 (loop [ticks-until (ticks-per-action (:spd player))
+                        entities entities]
+                   (if (zero? ticks-until)
+                     entities
+                     (recur (dec ticks-until)
+                            (tick-all (partial dispatch game) entities)))))))
+
+(defn yx->entity
+  "Returns the entity occupying the `yx` coordinate in `game`."
+  [{:keys [area entities]} yx]
+  (or (first (filter #(= yx (:yx %)) entities))
+      ;; Tiles aren't really entities, so let's "entitize" them.
+      {:type (:tile (yx->m yx area)) :yx yx}))
 
 ;; Temporary sketch of actions
 ; {:type :move}
@@ -11,32 +34,44 @@
 ; {:type :use} ; using potions or equipping items
 
 (defmulti dispatch
-  (fn [entity] (-> entity :next-action :type)))
+  (fn [game entity-id]
+    (some-> game :entities (nth entity-id) :next-action :type)))
+
+(declare encounter)
 
 (defmethod dispatch :walk
-  [{{:keys [dir]} :next-action, :as entity}]
-  (update entity
-          :yx
-          (fn [[y x]]
-              (case (name dir)
-                "north" [(dec y) x]
-                "east"  [y (inc x)]
-                "south" [(inc y) x]
-                "west"  [y (dec x)]))))
+  [{:keys [entities], :as game} entity-id]
+  (let [{{:keys [dir]} :next-action, [y x] :yx, :as entity}
+          (entities entity-id)
+        next-yx (case (name dir)
+                  "north" [(dec y) x]
+                  "east"  [y (inc x)]
+                  "south" [(inc y) x]
+                  "west"  [y (dec x)])
+        target-entity (yx->entity game next-yx)]
+    (encounter entity target-entity)))
 
-(declare tick-all)
-(declare ticks-per-action)
+;; This is the default method for non-player `tickable-entities`. Doesn't apply
+;; to `player` as the game-loop only runs when their :next-action is defined.
+; (defmethod dispatch :default
+;   )
 
-(defn effect-all [game]
-  (update-in game
-             [:entities]
-             (fn [[player :as entities]]
-                 (loop [ticks-until (ticks-per-action (:spd player))
-                        entities entities]
-                   (if (zero? ticks-until)
-                     entities
-                     (recur (dec ticks-until)
-                            (tick-all entities)))))))
+(defmulti encounter
+  (fn [entity-a entity-b]
+    (mapv (comp keyword simplify-keyword :type)
+          [entity-a entity-b])))
+
+;; TODO once we start writing `encounter` methods for entities, we will need to
+;; return both entities in a vector instead of just the player, and handle this
+;; in our `tick` functions.
+
+(defmethod encounter [:player :empty]
+  [player {:keys [yx]}]
+  (assoc player :yx yx))
+
+(defmethod encounter [:player :wall]
+  [player _]
+  player)
 
 ;;;; Entity ticks for initiating actions/events
 
@@ -73,10 +108,10 @@
     (assoc entity :ticks (ticks-per-action (:spd entity)))
     entity))
 
-(defn reset-ticks-all
-  "`reset-ticks` on a sequence of `entities`."
-  [entities]
-  (mapv reset-ticks entities))
+#_(defn reset-ticks-all
+    "`reset-ticks` on a sequence of `entities`."
+    [entities]
+    (mapv reset-ticks entities))
 
 (defn- has-ticks?
   "Returns true if `entity` has ticks key defined."
@@ -84,25 +119,22 @@
   (boolean (:ticks entity)))
 
 (defn- tick
-  "Initiates a single tick to `entity`."
-  [entity]
+  "Initiates a single tick to `entity` and runs `dispatch-fn` if zero."
+  [dispatch-fn entity]
   (if (should-tick? entity)
     (let [next-entity (update entity :ticks dec)]
       (if (and (zero? (:ticks next-entity))
                (zero? (:id next-entity)))
         ;; It's the player.
-        (reset-ticks (dispatch entity))
+        (reset-ticks (dispatch-fn (:id entity)))
         next-entity))
     entity))
 
-(defn- apply-tick
-  "Safely applies `tick` to `entity`, resetting the key if not defined."
-  [entity]
-  (if (has-ticks? entity)
-    (tick entity)
-    (tick (reset-ticks entity))))
-
 (defn tick-all
-  "`apply-tick` to all `entities`."
-  [entities]
-  (mapv apply-tick entities))
+  "Safely `tick` all `entities`, resetting the key if not defined."
+  [dispatch-fn entities]
+  (let [partial-tick (partial tick dispatch-fn)
+        apply-tick #(if (has-ticks? %)
+                      (partial-tick %)
+                      (partial-tick (reset-ticks %)))]
+    (mapv apply-tick entities)))
