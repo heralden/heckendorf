@@ -2,7 +2,7 @@
     (:require [clj-roguelike.entity :refer [gen-entity reset-id]]
               [clj-roguelike.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
               [clj-roguelike.random :refer [rand-range]]
-              [clj-roguelike.action :refer [effect-all]]))
+              [clj-roguelike.action :refer [effect-entities]]))
 
 (def ^:const area-width 30)
 (def ^:const area-height 30)
@@ -110,7 +110,7 @@
     (prepare-game @game-atom))
   (defn queue-action [entity-id action reply-fn]
     (let [assoc-action #(assoc-in % [:entities entity-id :next-action] action)
-          update-fun (comp effect-all assoc-action)]
+          update-fun (comp effect-entities assoc-action)]
       (-> (swap! game-atom update-fun)
           prepare-game
           reply-fn))))

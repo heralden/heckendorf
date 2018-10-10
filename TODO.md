@@ -14,8 +14,12 @@
 
 ## Find a way to give an error if you provide a namespaced keyword that doesn't exist (as in the case of the :monter/spider typo) (should probably be defined in the gen-entity :default multimethod)
 
+## Use lighting as a game element: Limit the light radius and gradually increase it by some game mechanic.
+
 
 # Refactoring
+
+## Pass `entities` to `cljs-roguelike.action` functions instead of the entire game object, if it's possible to do this once `dispatch` methods have been fleshed out.
 
 ## Place simplify-keyword into a util file that can be required by both cljs and clj code
 

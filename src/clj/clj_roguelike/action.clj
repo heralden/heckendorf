@@ -2,27 +2,25 @@
     (:require [clj-roguelike.entity :refer [simplify-keyword]]
               [clj-roguelike.dungeon :refer [yx->m]]))
 
-(declare tick-all)
-(declare ticks-per-action)
-(declare dispatch)
-
-(defn effect-all [game]
-  (update-in game
-             [:entities]
-             (fn [[player :as entities]]
-                 (loop [ticks-until (ticks-per-action (:spd player))
-                        entities entities]
-                   (if (zero? ticks-until)
-                     entities
-                     (recur (dec ticks-until)
-                            (tick-all (partial dispatch game) entities)))))))
-
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
   [{:keys [area entities]} yx]
   (or (first (filter #(= yx (:yx %)) entities))
       ;; Tiles aren't really entities, so let's "entitize" them.
       {:type (:tile (yx->m yx area)) :yx yx}))
+
+(defmulti encounter
+  (fn [entity-a entity-b]
+    (mapv (comp keyword simplify-keyword :type)
+          [entity-a entity-b])))
+
+(defmethod encounter [:player :empty]
+  [player {:keys [yx]}]
+  [(assoc player :yx yx)])
+
+(defmethod encounter [:player :wall]
+  [player _]
+  [player])
 
 ;; Temporary sketch of actions
 ; {:type :move}
@@ -36,8 +34,6 @@
 (defmulti dispatch
   (fn [game entity-id]
     (some-> game :entities (nth entity-id) :next-action :type)))
-
-(declare encounter)
 
 (defmethod dispatch :walk
   [{:keys [entities], :as game} entity-id]
@@ -53,25 +49,9 @@
 
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply
 ;; to `player` as the game-loop only runs when their :next-action is defined.
-; (defmethod dispatch :default
-;   )
-
-(defmulti encounter
-  (fn [entity-a entity-b]
-    (mapv (comp keyword simplify-keyword :type)
-          [entity-a entity-b])))
-
-;; TODO once we start writing `encounter` methods for entities, we will need to
-;; return both entities in a vector instead of just the player, and handle this
-;; in our `tick` functions.
-
-(defmethod encounter [:player :empty]
-  [player {:keys [yx]}]
-  (assoc player :yx yx))
-
-(defmethod encounter [:player :wall]
-  [player _]
-  player)
+(defmethod dispatch :default
+  [game entity-id]
+  [(get-in game [:entities entity-id])])
 
 ;;;; Entity ticks for initiating actions/events
 
@@ -101,40 +81,52 @@
   [entity]
   (contains? tickable-entities (simplify-keyword (:type entity))))
 
-(defn- reset-ticks
-  "Sets the initial remaining ticks to an `entity` depending on its spd."
-  [entity]
-  (if (should-tick? entity)
-    (assoc entity :ticks (ticks-per-action (:spd entity)))
-    entity))
-
-#_(defn reset-ticks-all
-    "`reset-ticks` on a sequence of `entities`."
-    [entities]
-    (mapv reset-ticks entities))
-
 (defn- has-ticks?
   "Returns true if `entity` has ticks key defined."
   [entity]
   (boolean (:ticks entity)))
 
-(defn- tick
-  "Initiates a single tick to `entity` and runs `dispatch-fn` if zero."
-  [dispatch-fn entity]
-  (if (should-tick? entity)
-    (let [next-entity (update entity :ticks dec)]
-      (if (and (zero? (:ticks next-entity))
-               (zero? (:id next-entity)))
-        ;; It's the player.
-        (reset-ticks (dispatch-fn (:id entity)))
-        next-entity))
-    entity))
+(defn- reset-ticks
+  "Sets the initial remaining ticks to an `entity` depending on its spd key."
+  [entity]
+  (assoc entity :ticks (ticks-per-action (:spd entity))))
 
-(defn tick-all
-  "Safely `tick` all `entities`, resetting the key if not defined."
-  [dispatch-fn entities]
-  (let [partial-tick (partial tick dispatch-fn)
-        apply-tick #(if (has-ticks? %)
-                      (partial-tick %)
-                      (partial-tick (reset-ticks %)))]
-    (mapv apply-tick entities)))
+(defn- tick
+  "Initiates a single tick to `entity`, resetting it once it goes below zero."
+  [entity]
+  (let [next-entity (update entity :ticks dec)]
+    (if (neg? (:ticks next-entity))
+      (reset-ticks entity)
+      next-entity)))
+
+(defn- apply-tick
+  "Safely applies tick to any `entity` by first checking if it's tickable and
+  resetting the amount of ticks if necessary."
+  [entity]
+  (cond
+    (and (has-ticks? entity)
+         (should-tick? entity)) (tick entity)
+    (should-tick? entity) (tick (reset-ticks entity))
+    :else entity))
+
+(defn merge-dispatch [game id]
+  (update game
+          :entities
+          (fn [entities]
+              (reduce (fn [es e] (assoc es (:id e) e))
+                      entities
+                      (update (dispatch game id) 0 apply-tick)))))
+
+(defn effect-entities
+  "Runs through a full game-loop. Ticks down entities and runs `merge-dispatch`
+  whenever an entity reaches its turn to dispatch their action. Returns right
+  before the player entity dispatches, so we can prompt for input."
+  ([game] (effect-entities game 0 true))
+  ([game id initial?]
+   (let [entities (:entities game)
+         enticks  (or (-> entities (nth id) :ticks) 0)
+         next-id  (if (contains? entities (inc id)) (inc id) 0)]
+     (cond
+       (and (not initial?) (zero? id) (zero? enticks)) game
+       (zero? enticks) (recur (merge-dispatch game id) next-id false)
+       :else (recur (update-in game [:entities id] apply-tick) next-id false)))))
