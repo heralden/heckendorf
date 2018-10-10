@@ -124,7 +124,8 @@
   ([game] (effect-entities game 0 true))
   ([game id initial?]
    (let [entities (:entities game)
-         enticks  (or (-> entities (nth id) :ticks) 0)
+         entity   (nth entities id)
+         enticks  (if (should-tick? entity) (or (:ticks entity) 0) -1)
          next-id  (if (contains? entities (inc id)) (inc id) 0)]
      (cond
        (and (not initial?) (zero? id) (zero? enticks)) game
