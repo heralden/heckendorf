@@ -40,24 +40,27 @@
     style-rendering
     {:background-color "white"}))
 
-(defn simplify-keyword [keyw]
-  (if (simple-keyword? keyw)
-    (name keyw)
-    (namespace keyw)))
-
-(defn tile->graphic [width index tile]
+(defn tile->graphic [width index {:keys [tile]}]
   ^{:key index}
   [:div {:style
          (into
-           (case (simplify-keyword (:tile tile))
-             "empty"      empty-style
-             "wall"       (tile-style [0 3])
-             "dark"       (tile-style [3 3])
-             "monster"    (tile-style [5 4])
-             "chest"      (tile-style [7 5])
-             "stair-down" (tile-style [6 7])
-             "stair-up"   (tile-style [6 6])
-             "player"     (tile-style [2 7])
+           (case (if (= (namespace tile) "chest")
+                   (namespace tile)
+                   (name tile))
+             "empty"       empty-style
+             "wall"        (tile-style [0 3])
+             "dark"        (tile-style [3 3])
+             "chest"       (tile-style [7 5])
+             "stair-down"  (tile-style [6 7])
+             "stair-up"    (tile-style [6 6])
+             "player"      (tile-style [8 0])
+             "spider"      (tile-style [8 1])
+             "skeleton"    (tile-style [8 2])
+             "zombie"      (tile-style [8 3])
+             "ghost"       (tile-style [8 4])
+             "grim-reaper" (tile-style [8 5])
+             "drake"       (tile-style [8 6])
+             "dragon"      (tile-style [5 4])
              (tile-style [0 0]))
            {:width (str tile-size "px")
             :height (str tile-size "px")
