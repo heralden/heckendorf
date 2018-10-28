@@ -73,46 +73,52 @@
 (defmethod gen-entity :stair-up [& data]
   (apply entity-with {} data))
 
+;; Estimated optimal weapons for spd
+;; 1-7: greatsword
+;; 7-11: mace
+;; 11-16: sword
+;; 16+: dagger
+
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
          {:hp (rand-range 6 10)
           :att (rand-range 2 5)
-          :spd (rand-range 11 15)}
+          :spd (rand-range 14 20)}
          data))
 
 (defmethod gen-entity :monster/skeleton [& data]
   (apply entity-with
          {:hp (rand-range 15 25)
           :att (rand-range 4 7)
-          :spd (rand-range 7 9)}
+          :spd (rand-range 8 11)}
          data))
 
 (defmethod gen-entity :monster/zombie [& data]
   (apply entity-with
          {:hp (rand-range 20 30)
           :att (rand-range 5 12)
-          :spd (rand-range 3 8)}
+          :spd (rand-range 5 10)}
          data))
 
 (defmethod gen-entity :monster/ghost [& data]
   (apply entity-with
          {:hp (rand-range 50 65)
           :att (rand-range 15 20)
-          :spd (rand-range 5 15)}
+          :spd (rand-range 10 20)}
          data))
 
 (defmethod gen-entity :monster/grim-reaper [& data]
   (apply entity-with
          {:hp (rand-range 100 126)
           :att (rand-range 30 50)
-          :spd (rand-range 4 9)}
+          :spd (rand-range 8 14)}
          data))
 
 (defmethod gen-entity :monster/drake [& data]
   (apply entity-with
          {:hp (rand-range 310 350)
           :att (rand-range 40 60)
-          :spd (rand-range 5 8)}
+          :spd (rand-range 6 9)}
          data))
 
 (defmethod gen-entity :monster/dragon [& data]
