@@ -9,7 +9,21 @@
       ;; Tiles aren't really entities, so let's "entitize" them.
       {:type (:tile (yx->m yx area)) :yx yx}))
 
+(defn random-neighbor
+  "Returns the yx vector of a random neighboring coordinate of `yx`."
+  [[y x]]
+  (let [dirs [[(dec y) x]        ; north
+              [(dec y) (inc x)]  ; north-east
+              [y (inc x)]        ; east
+              [(inc y) (inc x)]  ; south-east
+              [(inc y) x]        ; south
+              [(inc y) (dec x)]  ; south-west
+              [y (dec x)]        ; west
+              [(dec y) (dec x)]]]; north-west
+    (rand-nth dirs)))
+
 (defmulti encounter
+  "Dispatches on entity type."
   (fn [entity-a entity-b]
     (mapv (comp keyword simplify-keyword :type)
           [entity-a entity-b])))
@@ -21,6 +35,18 @@
 (defmethod encounter [:player :wall]
   [player _]
   [player])
+
+(defmethod encounter [:monster :empty]
+  [monster {:keys [yx]}]
+  [(assoc monster :yx yx)])
+
+(defmethod encounter [:monster :wall]
+  [monster _]
+  [monster])
+
+(defmethod encounter :default
+  [entity _]
+  [entity])
 
 ;; Temporary sketch of actions
 ; {:type :move}
@@ -50,8 +76,12 @@
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply
 ;; to `player` as the game-loop only runs when their :next-action is defined.
 (defmethod dispatch :default
-  [game entity-id]
-  [(get-in game [:entities entity-id])])
+  [{:keys [entities], :as game} entity-id]
+  (let [entity (entities entity-id)
+        next-yx (random-neighbor (get entity :yx))
+        temp-target-entity (yx->entity game next-yx)]
+    (encounter entity (rand-nth [temp-target-entity entity]))))
+;; TODO proper enemy behaviour
 
 ;;;; Entity ticks for initiating actions/events
 
@@ -110,12 +140,16 @@
     :else entity))
 
 (defn merge-dispatch [game id]
+  "Dispatches action on an entity that has ticked, replacing all entities with
+  new updated entities of the same :id."
   (update game
           :entities
           (fn [entities]
               (reduce (fn [es e] (assoc es (:id e) e))
                       entities
                       (update (dispatch game id) 0 apply-tick)))))
+;; Verify that the above code can update multiple entities at the same time,
+;; (when multiple are returned from `dispatch`) so they can interact.
 
 (defn effect-entities
   "Runs through a full game-loop. Ticks down entities and runs `merge-dispatch`

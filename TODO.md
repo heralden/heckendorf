@@ -1,5 +1,7 @@
 # Doing
 
+## Use behaviour trees for enemy AI, once entities are able to interact/influence other entities.
+
 ## Refactor, add docstrings, and encapsulate (into different files?) the functionality in dungeon.clj. Also please write tests.
 
 ## A tick is done every time the player moves (use event-sourcing to compute the current state of the game)
