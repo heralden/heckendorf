@@ -1,7 +1,7 @@
 (ns clj-roguelike.views
     (:require [re-frame.core :as re-frame]
               [clj-roguelike.subs :as subs]
-              ))
+              [clojure.string :as s]))
 
 (def real-tileset-width 128)
 (def real-tile-size 16)
@@ -75,6 +75,18 @@
        (partial tile->graphic width)
        tiles)]))
 
+(defn player-info []
+  (let [{{:keys [hp exp lvl equipped inventory]} :player}
+        @(re-frame/subscribe [::subs/game-state])]
+    [:span {:style {:font-family "monospace"
+                    :font-size "16px"
+                    :color "white"}}
+     (s/join " "
+             ["HP" hp
+              "XP" exp
+              "LVL" lvl
+              "EQP" equipped
+              "INV" inventory]) ]))
+
 (defn main-panel []
-  (let [name (re-frame/subscribe [::subs/name])]
-    [:div "Hello from " @name (game-tiles)]))
+  [:div (player-info) (game-tiles)])

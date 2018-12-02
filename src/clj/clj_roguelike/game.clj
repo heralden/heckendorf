@@ -7,7 +7,7 @@
 (def ^:const area-width 30)
 (def ^:const area-height 30)
 (def ^:const room-attempts 50)
-(def ^:const sight-range 15)
+(def ^:const sight-range 10)
 
 (defn- rvec [v]
   "Reverses, and returns a vector"
@@ -89,9 +89,9 @@
 (defn normalize-game [game]
   "Merges the :entity vector into the :area:tiles vector according to coordinates"
   (reduce (fn [area entity]
-              (assoc-in area
-                        [:tiles (yx->i (:width area) (:yx entity)) :tile]
-                        (:type entity)))
+            (assoc-in area
+                      [:tiles (yx->i (:width area) (:yx entity)) :tile]
+                      (:type entity)))
           (:area game)
           (:entities game)))
 
@@ -100,10 +100,13 @@
   (darken-dungeon area sight-range player-yx))
 
 (defn prepare-game [game]
-  (let [player-yx (-> game :entities (get 0) :yx)]
+  "Processes the game state before it is sent to client."
+  (let [player (-> game :entities (get 0))]
     (-> game
         normalize-game
-        (darken-game player-yx))))
+        (darken-game (:yx player))
+        ;; Add the player object so client can display stats
+        (assoc :player player))))
 
 (let [game-atom (atom (create-game (rand-int 6) floors nil))]
   (defn game->web []

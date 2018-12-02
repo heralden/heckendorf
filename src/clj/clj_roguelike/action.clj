@@ -36,6 +36,11 @@
   [player _]
   [player])
 
+(defmethod encounter [:player :monster]
+  [player _]
+  [player])
+;; TODO entity interaction aka FIGHTS!
+
 (defmethod encounter [:monster :empty]
   [monster {:keys [yx]}]
   [(assoc monster :yx yx)])
@@ -139,17 +144,12 @@
     (should-tick? entity) (tick (reset-ticks entity))
     :else entity))
 
-(defn merge-dispatch [game id]
+(defn merge-dispatch [entities game id]
   "Dispatches action on an entity that has ticked, replacing all entities with
-  new updated entities of the same :id."
-  (update game
-          :entities
-          (fn [entities]
-              (reduce (fn [es e] (assoc es (:id e) e))
-                      entities
-                      (update (dispatch game id) 0 apply-tick)))))
-;; Verify that the above code can update multiple entities at the same time,
-;; (when multiple are returned from `dispatch`) so they can interact.
+  new updated entities of the same id."
+  (reduce (fn [es e] (assoc es (:id e) e)) ; entity id's are the same as their index
+          entities
+          (update (dispatch game id) 0 apply-tick)))
 
 (defn effect-entities
   "Runs through a full game-loop. Ticks down entities and runs `merge-dispatch`
@@ -163,5 +163,5 @@
          next-id  (if (contains? entities (inc id)) (inc id) 0)]
      (cond
        (and (not initial?) (zero? id) (zero? enticks)) game
-       (zero? enticks) (recur (merge-dispatch game id) next-id false)
+       (zero? enticks) (recur (update game :entities merge-dispatch game id) next-id false)
        :else (recur (update-in game [:entities id] apply-tick) next-id false)))))
