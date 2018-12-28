@@ -27,7 +27,7 @@
     [:html {:lang "en"}
      [:head
       [:meta {:charset "utf-8"}]]
-     [:body
+     [:body {:style "background-color:black;overflow:hidden;"}
       [:div {:id "app"}]
       [:script {:src "js/compiled/app.js"}]
       [:script "clj_roguelike.core.init();"]]]))
