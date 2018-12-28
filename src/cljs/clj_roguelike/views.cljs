@@ -76,17 +76,23 @@
        tiles)]))
 
 (defn player-info []
-  (let [{{:keys [hp exp lvl equipped inventory]} :player}
+  (let [{{:keys [hp exp lvl equipped inventory message] :as player} :player}
         @(re-frame/subscribe [::subs/game-state])]
     [:span {:style {:font-family "monospace"
                     :font-size "16px"
                     :color "white"}}
-     (s/join " "
+     (if (some? player)
+       (s/join " "
              ["HP" hp
               "XP" exp
               "LVL" lvl
-              "EQP" equipped
-              "INV" inventory]) ]))
+              "EQP" (cond-> equipped
+                      (map? equipped) ((juxt :grade :form)))
+              "INV" inventory
+              (if (empty? message)
+                ""
+                (str "### " (s/upper-case message)))])
+       "LOADING")]))
 
 (defn main-panel []
   [:div (player-info) (game-tiles)])

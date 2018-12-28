@@ -1,6 +1,8 @@
 (ns clj-roguelike.action
-    (:require [clj-roguelike.entity :refer [simplify-keyword]]
-              [clj-roguelike.dungeon :refer [yx->m]]))
+    (:require [clojure.string :as s]
+              [clj-roguelike.entity :refer [simplify-keyword]]
+              [clj-roguelike.dungeon :refer [yx->m]]
+              [clj-roguelike.item :refer [dmg-with]]))
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
@@ -37,9 +39,14 @@
   [player])
 
 (defmethod encounter [:player :monster]
-  [player _]
-  [player])
-;; TODO entity interaction aka FIGHTS!
+  [player monster]
+  (let [dmg (dmg-with (:str player)
+                      (:spd monster)
+                      (:equipped player))
+        msg (s/join " "
+                    ["Did" dmg "damage to" (->> monster :type name)])]
+    [(assoc player :message msg)
+     (update monster :hp - dmg)]))
 
 (defmethod encounter [:monster :empty]
   [monster {:keys [yx]}]
@@ -146,7 +153,8 @@
 
 (defn merge-dispatch [entities game id]
   "Dispatches action on an entity that has ticked, replacing all entities with
-  new updated entities of the same id."
+  new updated entities of the same id. First entity returned should always be
+  the dispatching entity (id) so it can have its tick applied."
   (reduce (fn [es e] (assoc es (:id e) e)) ; entity id's are the same as their index
           entities
           (update (dispatch game id) 0 apply-tick)))

@@ -64,7 +64,8 @@
           :exp 0
           :lvl 1
           :inventory []
-          :equipped :none}
+          :equipped :none
+          :message ""}
          data))
 
 (defmethod gen-entity :stair-down [& data]

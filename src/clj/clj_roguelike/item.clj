@@ -28,11 +28,13 @@
 
 (defn dmg-with
   "Calculates damage using strength, speed of enemy and weapon item."
-  [strength enemy-spd {:keys [form grade]}]
+  [strength enemy-spd {:keys [form grade] :as wep}]
   (let [str-multiplier (+ (/ strength 10) 1)
         grade-multiplier (get grades grade)
         weapon (get weapons form)]
-    (calc-dmg str-multiplier grade-multiplier enemy-spd weapon)))
+    (if (= wep :none)
+      (calc-dmg str-multiplier 1 enemy-spd (get weapons :fist))
+      (calc-dmg str-multiplier grade-multiplier enemy-spd weapon))))
 
 (def potion
   {:minor #(rand-range 10 20)
