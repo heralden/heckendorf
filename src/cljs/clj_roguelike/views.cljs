@@ -51,6 +51,7 @@
              "wall"        (tile-style [0 3])
              "dark"        (tile-style [3 3])
              "chest"       (tile-style [7 5])
+             "chest-open"  (tile-style [7 6])
              "stair-down"  (tile-style [6 7])
              "stair-up"    (tile-style [6 6])
              "player"      (tile-style [8 0])
@@ -75,6 +76,11 @@
        (partial tile->graphic width)
        tiles)]))
 
+(defn item->str [item]
+  (case (:type item)
+    :weapon ((juxt :grade :form) item)
+    :potion ((juxt :grade :type) item)))
+
 (defn player-info []
   (let [{{:keys [hp exp lvl equipped inventory message floor]
           :as player}
@@ -89,8 +95,9 @@
               "XP" exp
               "LVL" lvl
               "EQP" (cond-> equipped
-                      (map? equipped) ((juxt :grade :form)))
-              "INV" inventory
+                      (map? equipped) item->str)
+              "INV" (->> (map item->str inventory)
+                         (map-indexed vector))
               "FLR" (-> floor inc -)
               (if (empty? message)
                 ""

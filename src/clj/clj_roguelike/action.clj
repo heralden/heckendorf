@@ -2,7 +2,7 @@
     (:require [clojure.string :as s]
               [clj-roguelike.entity :refer [simplify-keyword]]
               [clj-roguelike.dungeon :refer [yx->m]]
-              [clj-roguelike.item :refer [dmg-with]]))
+              [clj-roguelike.item :refer [dmg-with gen-item]]))
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
@@ -55,6 +55,12 @@
 (defmethod encounter [:player :stair-up]
   [player _]
   [(update player :floor dec)])
+
+(defmethod encounter [:player :chest]
+  [player chest]
+  (let [items (gen-item chest)]
+    [(update player :inventory into items)
+     (assoc chest :type :chest-open)]))
 
 (defmethod encounter [:monster :empty]
   [monster {:keys [yx]}]
