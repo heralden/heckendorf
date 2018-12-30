@@ -41,6 +41,10 @@
    :lesser #(rand-range 40 60)
    :greater #(rand-range 160 250)})
 
+(defn potion->hp [{:keys [grade type]}]
+  (assert (= type :potion))
+  ((potion grade)))
+
 (defn rand-weapon [type]
   {:type :weapon
    :form (-> weapons

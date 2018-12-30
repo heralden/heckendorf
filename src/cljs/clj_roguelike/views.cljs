@@ -76,6 +76,12 @@
        (partial tile->graphic width)
        tiles)]))
 
+(def hotkeys
+  (map (comp str char)
+       (concat (range 48 58)
+               (range 97 123)
+               (range 65 91))))
+
 (defn item->str [item]
   (case (:type item)
     :weapon ((juxt :grade :form) item)
@@ -97,7 +103,7 @@
               "EQP" (cond-> equipped
                       (map? equipped) item->str)
               "INV" (->> (map item->str inventory)
-                         (map-indexed vector))
+                         (zipmap hotkeys))
               "FLR" (-> floor inc -)
               (if (empty? message)
                 ""

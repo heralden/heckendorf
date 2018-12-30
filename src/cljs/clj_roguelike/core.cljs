@@ -18,15 +18,29 @@
 (defn update-game-board! [game-board]
   (re-frame/dispatch [::events/game-state game-board]))
 
+(defn valid-keychar? [keychar]
+  (let [valids (conj (set views/hotkeys)
+                     "ArrowLeft"
+                     "ArrowRight"
+                     "ArrowUp"
+                     "ArrowDown")]
+    (contains? valids keychar)))
+
 (defn handle-keys [e]
-  (let [send! #(chsk-send! [:game/action {:type :walk, :dir %}]
+  (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
                           5000
-                          update-game-board!)]
-    (case (.-key e)
-      "ArrowLeft"  (send! :west)
-      "ArrowRight" (send! :east)
-      "ArrowUp"    (send! :north)
-      "ArrowDown"  (send! :south))))
+                          update-game-board!)
+        use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
+                          5000
+                          update-game-board!)
+        keychar (.-key e)]
+    (when (valid-keychar? keychar)
+      (case keychar
+        "ArrowLeft"  (walk! :west)
+        "ArrowRight" (walk! :east)
+        "ArrowUp"    (walk! :north)
+        "ArrowDown"  (walk! :south)
+        (use! keychar)))))
 
 (defn request-game-board! []
   (chsk-send! [:game/start] 5000

@@ -2,7 +2,7 @@
     (:require [clojure.string :as s]
               [clj-roguelike.entity :refer [simplify-keyword]]
               [clj-roguelike.dungeon :refer [yx->m]]
-              [clj-roguelike.item :refer [dmg-with gen-item]]))
+              [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]))
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
@@ -83,6 +83,19 @@
 ; {:type :attack}
 ; {:type :use} ; using potions or equipping items
 
+(def hotkeys
+  (map (comp str char)
+       (concat (range 48 58)
+               (range 97 123)
+               (range 65 91))))
+
+(def hotkey->index
+  (zipmap hotkeys (range)))
+
+(defn remvec [v i]
+  (vec (concat (subvec v 0 i)
+               (subvec v (inc i)))))
+
 (defmulti dispatch
   (fn [game entity-id]
     (some-> game :entities (nth entity-id) :next-action :type)))
@@ -98,6 +111,19 @@
                   "west"  [y (dec x)])
         target-entity (yx->entity game next-yx)]
     (encounter entity target-entity)))
+
+(defmethod dispatch :use
+  [{:keys [entities]} entity-id]
+  (let [{{:keys [hotkey]} :next-action, :as entity}
+          (entities entity-id)
+        index (hotkey->index hotkey)
+        item (get-in entity [:inventory index])]
+    (case (:type item)
+      :potion [(-> entity
+                   (update :hp + (potion->hp item))
+                   (update :inventory remvec index))]
+      :weapon [(assoc entity :equipped item)]
+      [entity])))
 
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply
 ;; to `player` as the game-loop only runs when their :next-action is defined.
