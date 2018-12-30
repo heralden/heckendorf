@@ -8,7 +8,7 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.game :refer [game->web queue-action]]))
+              [clj-roguelike.game :refer [get-game update-game]]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -62,12 +62,12 @@
       (?reply-fn {:umatched-event-as-echoed-from-from-server event}))))
 
 (defmethod -event-msg-handler :game/start
-  [{:keys [?reply-fn]}]
-  (?reply-fn (game->web)))
+  [{:keys [?reply-fn client-id]}]
+  (?reply-fn (get-game client-id)))
 
 (defmethod -event-msg-handler :game/action
-  [{:keys [?data ?reply-fn]}]
-  (queue-action 0 ?data ?reply-fn))
+  [{:keys [?data ?reply-fn client-id]}]
+  (?reply-fn (update-game client-id 0 ?data)))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-fn @router_] (stop-fn)))

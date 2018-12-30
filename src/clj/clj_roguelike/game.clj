@@ -1,5 +1,5 @@
 (ns clj-roguelike.game
-    (:require [clj-roguelike.entity :refer [gen-entity reset-id]]
+    (:require [clj-roguelike.entity :refer [gen-entity entity-with reset-id]]
               [clj-roguelike.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
               [clj-roguelike.random :refer [rand-range]]
               [clj-roguelike.action :refer [effect-entities]]))
@@ -77,9 +77,9 @@
 
 (defn create-game [n floors player]
   ;; ID should correspond to the entity's vector index.
-  (reset-id (if (nil? player) -1 0))
+  (reset-id -1)
   (let [area (generate-dungeon area-width area-height room-attempts)
-        player (if (nil? player) (gen-entity {:type :player} area []) player)
+        player ((fnil gen-entity {:type :player}) player area [])
         entities (reduce (partial create-entities area)
                          player
                          (nth floors n))]
@@ -108,12 +108,25 @@
         ;; Add the player object so client can display stats
         (assoc :player player))))
 
-(let [game-atom (atom (create-game (rand-int 6) floors nil))]
-  (defn game->web []
-    (prepare-game @game-atom))
-  (defn queue-action [entity-id action reply-fn]
-    (let [assoc-action #(assoc-in % [:entities entity-id :next-action] action)
-          update-fun (comp effect-entities assoc-action)]
-      (-> (swap! game-atom update-fun)
-          prepare-game
-          reply-fn))))
+(let [game-atom (atom {})]
+  (defn get-game [client-id]
+    (if (contains? @game-atom client-id)
+      (prepare-game (get @game-atom client-id))
+      (let [new-game (create-game 0 floors nil)]
+        (swap! game-atom assoc client-id new-game)
+        (prepare-game new-game))))
+  (defn update-game [client-id entity-id action]
+    (let [prev-game (get @game-atom client-id)
+          next-game (-> prev-game
+                        (assoc-in [:entities entity-id :next-action] action)
+                        effect-entities)
+          [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
+                                       [prev-game
+                                        next-game])]
+      (if (= prev-floor next-floor)
+        (do (swap! game-atom assoc client-id next-game)
+            (prepare-game next-game))
+        (let [player (get-in next-game [:entities 0])
+              new-game (create-game next-floor floors player)]
+          (swap! game-atom assoc client-id new-game)
+          (prepare-game new-game))))))

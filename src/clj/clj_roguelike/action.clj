@@ -48,6 +48,14 @@
     [(assoc player :message msg)
      (update monster :hp - dmg)]))
 
+(defmethod encounter [:player :stair-down]
+  [player _]
+  [(update player :floor inc)])
+
+(defmethod encounter [:player :stair-up]
+  [player _]
+  [(update player :floor dec)])
+
 (defmethod encounter [:monster :empty]
   [monster {:keys [yx]}]
   [(assoc monster :yx yx)])
@@ -57,7 +65,7 @@
   [monster])
 
 (defmethod encounter :default
-  [entity _]
+  [entity _target]
   [entity])
 
 ;; Temporary sketch of actions

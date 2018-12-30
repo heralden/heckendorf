@@ -41,14 +41,12 @@
       yx
       (recur area entity-type yxs-set))))
 
-(defn entity-with [props m area entities]
-  (->> props
-       (into {:id (new-id)
-              :yx (unique-yx area
-                             (:type m)
-                             (set (map :yx entities)))})
-       (into m)
-       (conj entities)))
+(defn entity-with [default-m m area entities]
+	(let [new-m {:id (new-id)
+							 :yx (unique-yx area
+														  (:type m)
+														  (set (map :yx entities)))}]
+		(conj entities (merge default-m m new-m))))
 
 (defmulti gen-entity
   (fn [m area entities] (:type m)))
@@ -65,7 +63,8 @@
           :lvl 1
           :inventory []
           :equipped :none
-          :message ""}
+          :message ""
+          :floor 0}
          data))
 
 (defmethod gen-entity :stair-down [& data]

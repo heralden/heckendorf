@@ -76,7 +76,9 @@
        tiles)]))
 
 (defn player-info []
-  (let [{{:keys [hp exp lvl equipped inventory message] :as player} :player}
+  (let [{{:keys [hp exp lvl equipped inventory message floor]
+          :as player}
+         :player}
         @(re-frame/subscribe [::subs/game-state])]
     [:span {:style {:font-family "monospace"
                     :font-size "16px"
@@ -89,6 +91,7 @@
               "EQP" (cond-> equipped
                       (map? equipped) ((juxt :grade :form)))
               "INV" inventory
+              "FLR" (-> floor inc -)
               (if (empty? message)
                 ""
                 (str "### " (s/upper-case message)))])
