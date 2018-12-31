@@ -98,7 +98,7 @@
      (if (some? player)
        (s/join " "
              ["HP" hp
-              "XP" exp
+              "XP" (int exp)
               "LVL" lvl
               "EQP" (cond-> equipped
                       (map? equipped) item->str)

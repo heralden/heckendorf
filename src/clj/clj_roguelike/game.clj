@@ -88,10 +88,10 @@
 
 (defn normalize-game [game]
   "Merges the :entity vector into the :area:tiles vector according to coordinates"
-  (reduce (fn [area entity]
-            (assoc-in area
-                      [:tiles (yx->i (:width area) (:yx entity)) :tile]
-                      (:type entity)))
+  (reduce (fn [area {:keys [type yx]}]
+            (cond-> area
+              (not= type :dead)
+                (assoc-in [:tiles (yx->i (:width area) yx) :tile] type)))
           (:area game)
           (:entities game)))
 

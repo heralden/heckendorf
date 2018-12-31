@@ -43,10 +43,21 @@
   (let [dmg (dmg-with (:str player)
                       (:spd monster)
                       (:equipped player))
+        dead? (>= dmg (:hp monster))
+        monster-name (->> monster :type name)
         msg (s/join " "
-                    ["Did" dmg "damage to" (->> monster :type name)])]
-    [(assoc player :message msg)
-     (update monster :hp - dmg)]))
+                    (if dead?
+                      ["Killed" monster-name "after dealing" dmg "damage"]
+                      ["Did" dmg "damage to" monster-name]))
+        new-monster (if dead?
+                      {:type :dead, :id (:id monster)}
+                      (update monster :hp - dmg))
+        new-player (-> player
+                       (update :exp + (if dead?
+                                        (:hp monster)
+                                        dmg))
+                       (assoc :message msg))]
+    [new-player new-monster]))
 
 (defmethod encounter [:player :stair-down]
   [player _]
