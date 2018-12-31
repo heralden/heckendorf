@@ -1,6 +1,6 @@
 (ns clj-roguelike.action
     (:require [clojure.string :as s]
-              [clj-roguelike.entity :refer [simplify-keyword]]
+              [clj-roguelike.entity :refer [simplify-keyword train]]
               [clj-roguelike.dungeon :refer [yx->m]]
               [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]))
 
@@ -53,9 +53,7 @@
                       {:type :dead, :id (:id monster)}
                       (update monster :hp - dmg))
         new-player (-> player
-                       (update :exp + (if dead?
-                                        (:hp monster)
-                                        dmg))
+                       (train (if dead? (:hp monster) dmg))
                        (assoc :message msg))]
     [new-player new-monster]))
 

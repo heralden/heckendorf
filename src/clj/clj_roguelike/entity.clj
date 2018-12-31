@@ -41,6 +41,21 @@
       yx
       (recur area entity-type yxs-set))))
 
+(defn calc-exp [lvl]
+  (int (+ (* 40 lvl)
+          (Math/pow (* 1.5 lvl) 2)
+          (Math/pow (* 1.1 lvl) 3)
+          30)))
+
+(defn train [player exp]
+  (let [{new-exp :exp, lvl :lvl, :as new-player}
+          (update player :exp + exp)
+        level-up? (>= new-exp (calc-exp (inc lvl)))]
+    (cond-> new-player
+      level-up? (-> (update :lvl inc)
+                    (update :str + 2)
+                    (update :max-hp + 10)))))
+
 (defn entity-with [default-m m area entities]
 	(let [new-m {:id (new-id)
 							 :yx (unique-yx area
@@ -56,11 +71,12 @@
 
 (defmethod gen-entity :player [& data]
   (apply entity-with
-         {:hp 30
-          :str 5 ; dmg = (str / wep.spd) + wep.att
+         {:max-hp 30
+          :hp 30
+          :str 5
           :spd 10
           :exp 0
-          :lvl 1
+          :lvl 0
           :inventory []
           :equipped :none
           :message ""

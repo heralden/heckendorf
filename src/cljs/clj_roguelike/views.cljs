@@ -88,7 +88,7 @@
     :potion ((juxt :grade :type) item)))
 
 (defn player-info []
-  (let [{{:keys [hp exp lvl equipped inventory message floor]
+  (let [{{:keys [hp max-hp exp lvl equipped inventory message floor]
           :as player}
          :player}
         @(re-frame/subscribe [::subs/game-state])]
@@ -97,7 +97,7 @@
                     :color "white"}}
      (if (some? player)
        (s/join " "
-             ["HP" hp
+             ["HP" (str hp \/ max-hp)
               "XP" (int exp)
               "LVL" lvl
               "EQP" (cond-> equipped
