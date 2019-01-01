@@ -46,9 +46,12 @@
         dead? (>= dmg (:hp monster))
         monster-name (->> monster :type name)
         msg (s/join " "
-                    (if dead?
-                      ["Killed" monster-name "after dealing" dmg "damage"]
-                      ["Did" dmg "damage to" monster-name]))
+                    (cond
+                      dead?
+                        ["Killed" monster-name "after dealing" dmg "damage"]
+                      (zero? dmg)
+                        [monster-name "dodged your attack"]
+                      :else ["Dealt" dmg "damage to" monster-name]))
         new-monster (if dead?
                       {:type :dead, :id (:id monster)}
                       (update monster :hp - dmg))

@@ -54,7 +54,8 @@
     (cond-> new-player
       level-up? (-> (update :lvl inc)
                     (update :str + 2)
-                    (update :max-hp + 10)))))
+                    (update :max-hp + 10)
+                    (update :message conj "You feel slightly stronger")))))
 
 (defn entity-with [default-m m area entities]
 	(let [new-m {:id (new-id)
