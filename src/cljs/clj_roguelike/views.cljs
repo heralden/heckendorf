@@ -92,23 +92,31 @@
           :as player}
          :player}
         @(re-frame/subscribe [::subs/game-state])]
-    [:span {:style {:font-family "monospace"
-                    :font-size "16px"
-                    :color "white"}}
-     (if (some? player)
-       (s/join " "
-             ["HP" (str hp \/ max-hp)
-              "XP" (int exp)
-              "LVL" lvl
-              "EQP" (cond-> equipped
-                      (map? equipped) item->str)
-              "INV" (->> (map item->str inventory)
-                         (zipmap hotkeys))
-              "FLR" (-> floor inc -)
-              (if (empty? message)
-                ""
-                (str "### " (s/upper-case message)))])
-       "LOADING")]))
+    [:div
+     [:span {:style {:font-family "monospace"
+                     :font-size "16px"
+                     :color "white"}}
+      (if (some? player)
+        (s/join " "
+                ["HP" (str hp \/ max-hp)
+                 "XP" (int exp)
+                 "LVL" lvl
+                 "EQP" (cond-> equipped
+                               (map? equipped) item->str)
+                 "INV" (->> (map item->str inventory)
+                            (zipmap hotkeys))
+                 "FLR" (-> floor inc -)])
+        "LOADING")]
+     (when (not-empty message)
+       [:div {:style {:position "absolute"
+                      :background-color "rgba(0,0,0,0.5)"
+                      :padding "4px 12px"}}
+        (for [[index text] (map-indexed vector (take-last 5 message))]
+          [:p {:style {:font-family "monospace"
+                       :font-size "12px"
+                       :color "white"}
+               :key index}
+              (s/upper-case text)])])]))
 
 (defn main-panel []
   [:div (player-info) (game-tiles)])

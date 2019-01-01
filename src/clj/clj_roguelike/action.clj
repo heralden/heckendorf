@@ -54,7 +54,7 @@
                       (update monster :hp - dmg))
         new-player (-> player
                        (train (if dead? (:hp monster) dmg))
-                       (assoc :message msg))]
+                       (update :message conj msg))]
     [new-player new-monster]))
 
 (defmethod encounter [:player :stair-down]

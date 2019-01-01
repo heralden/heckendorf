@@ -79,7 +79,7 @@
           :lvl 0
           :inventory []
           :equipped :none
-          :message ""
+          :message []
           :floor 0}
          data))
 
