@@ -18,12 +18,20 @@
    :mace       {:att 8 :spd 4}
    :greatsword {:att 18 :spd 2}})
 
+(defn- truncate-decimals
+  ([x]
+   (truncate-decimals x 1))
+  ([x amount]
+   (let [multiplier (Math/pow 10 amount)]
+     (float (/ (int (* x multiplier))
+               multiplier)))))
+
 (defn- calc-dmg [str-multiplier grade-multiplier enemy-spd wep]
   (let [{:keys [att spd]} wep
         chance-to-hit (* (/ spd enemy-spd) 2)
         final-att (+ (/ att 10) 1)]
     (if (< (rand) chance-to-hit)
-      (float (* grade-multiplier str-multiplier final-att))
+      (truncate-decimals (* grade-multiplier str-multiplier final-att))
       0)))
 
 (defn dmg-with
