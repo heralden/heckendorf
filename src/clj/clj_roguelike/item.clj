@@ -23,15 +23,18 @@
    (truncate-decimals x 1))
   ([x amount]
    (let [multiplier (Math/pow 10 amount)]
-     (float (/ (int (* x multiplier))
+     (float (/ (Math/round (* x multiplier))
                multiplier)))))
 
 (defn- calc-dmg [str-multiplier grade-multiplier enemy-spd wep]
   (let [{:keys [att spd]} wep
         chance-to-hit (* (/ spd enemy-spd) 2)
-        final-att (+ (/ att 10) 1)]
+        final-att (+ (/ att 10) 1)
+        dmg (* grade-multiplier str-multiplier final-att)
+        jitter (* dmg 0.2)
+        real-dmg (+ (* (rand) jitter) (- dmg (/ jitter 2)))]
     (if (< (rand) chance-to-hit)
-      (truncate-decimals (* grade-multiplier str-multiplier final-att))
+      (truncate-decimals real-dmg)
       0)))
 
 (defn dmg-with
