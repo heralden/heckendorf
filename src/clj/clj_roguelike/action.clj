@@ -131,10 +131,22 @@
         index (hotkey->index hotkey)
         item (get-in entity [:inventory index])]
     (case (:type item)
-      :potion [(-> entity
-                   (update :hp + (potion->hp item))
-                   (update :inventory remvec index))]
-      :weapon [(assoc entity :equipped item)]
+      :potion (let [{:keys [max-hp hp]} entity
+                    healed (min (potion->hp item) (- max-hp hp))
+                    msg (str "You drank a potion healing you by "
+                             healed
+                             " points")]
+                [(-> entity
+                     (update :hp + healed)
+                     (update :inventory remvec index)
+                     (update :message conj msg))])
+      :weapon (let [weapon (->> ((juxt :grade :form) item)
+                                (map name)
+                                (s/join " "))
+                    msg (str "You equip a " weapon)]
+                [(-> entity
+                     (assoc :equipped item)
+                     (update :message conj msg))])
       [entity])))
 
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply

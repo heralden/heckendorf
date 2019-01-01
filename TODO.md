@@ -2,8 +2,6 @@
  
 ## If you gain enough XP in one tick to level up multiple times, bad things will happen
 
-## Potions increase HP above Max HP
-
 # Doing
 
 ## Use behaviour trees for enemy AI, once entities are able to interact/influence other entities.
