@@ -8,7 +8,8 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.game :refer [get-game update-game]]))
+              [clj-roguelike.game :refer [get-game update-game]]
+              [clojure.java.io :as io]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -23,14 +24,7 @@
   (def connected-uids connected-uids))
 
 (defn landing-pg-handler [ring-req]
-  (hiccup/html
-    [:html {:lang "en"}
-     [:head
-      [:meta {:charset "utf-8"}]]
-     [:body {:style "background-color:black;overflow:hidden;"}
-      [:div {:id "app"}]
-      [:script {:src "js/compiled/app.js"}]
-      [:script "clj_roguelike.core.init();"]]]))
+  (->> "public/index.html" io/resource slurp))
 
 (defroutes ring-routes
   (GET "/" ring-req (landing-pg-handler ring-req))

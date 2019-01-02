@@ -1,0 +1,33 @@
+body {
+  font-family: monospace;
+  background-color: black;
+  overflow: hidden;
+}
+
+.status-bar {
+  font-size: 16px;
+  color: white;
+}
+
+.message-log {
+  position: absolute;
+  background-color: rgba(0,0,0,0.5);
+  padding: 4px 12px;
+}
+
+.log-entry {
+  font-size: 12px;
+  color: white;
+}
+
+.area {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tile {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

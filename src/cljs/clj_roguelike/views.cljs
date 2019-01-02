@@ -19,59 +19,44 @@
            (str "right " (offset-tile-size x) "px")
            "left 0px"))))
 
-; TODO find out how to specify multiple values for one key
-; What we want here is:
-; image-rendering: -moz-crisp-edges;
-; image-rendering: -webkit-crisp-edges;
-; image-rendering: pixelated;
-; image-rendering: crisp-edges;
-(def style-rendering
-  {:image-rendering "-moz-crisp-edges"})
-
 (defn tile-style [yx]
-  (into
-    style-rendering
-    {:background-image "url('/images/tileset.png')"
-     :background-position (get-tileset-pos yx)
-     :background-size (str tileset-width "px")}))
+  {:background-image "url('/images/tileset.png')"
+   :background-position (get-tileset-pos yx)
+   :background-size (str tileset-width "px")})
 
 (def empty-style
-  (into
-    style-rendering
-    {:background-color "white"}))
+  {:background-color "white"})
 
 (defn tile->graphic [width index {:keys [tile]}]
   ^{:key index}
-  [:div {:style
-         (into
-           (case (if (= (namespace tile) "chest")
-                   (namespace tile)
-                   (name tile))
-             "empty"       empty-style
-             "wall"        (tile-style [0 3])
-             "dark"        (tile-style [3 3])
-             "chest"       (tile-style [7 5])
-             "chest-open"  (tile-style [7 6])
-             "stair-down"  (tile-style [6 7])
-             "stair-up"    (tile-style [6 6])
-             "player"      (tile-style [8 0])
-             "spider"      (tile-style [8 1])
-             "skeleton"    (tile-style [8 2])
-             "zombie"      (tile-style [8 3])
-             "ghost"       (tile-style [8 4])
-             "grim-reaper" (tile-style [8 5])
-             "drake"       (tile-style [8 6])
-             "dragon"      (tile-style [5 4])
-             (tile-style [0 0]))
-           {:width (str tile-size "px")
-            :height (str tile-size "px")
-            :flex-basis (str (* (/ 1 width) 100) "%")})}])
+  [:div.tile {:style
+              (into
+                (case (if (= (namespace tile) "chest")
+                        (namespace tile)
+                        (name tile))
+                  "empty"       empty-style
+                  "wall"        (tile-style [0 3])
+                  "dark"        (tile-style [3 3])
+                  "chest"       (tile-style [7 5])
+                  "chest-open"  (tile-style [7 6])
+                  "stair-down"  (tile-style [6 7])
+                  "stair-up"    (tile-style [6 6])
+                  "player"      (tile-style [8 0])
+                  "spider"      (tile-style [8 1])
+                  "skeleton"    (tile-style [8 2])
+                  "zombie"      (tile-style [8 3])
+                  "ghost"       (tile-style [8 4])
+                  "grim-reaper" (tile-style [8 5])
+                  "drake"       (tile-style [8 6])
+                  "dragon"      (tile-style [5 4])
+                  (tile-style [0 0]))
+                {:width (str tile-size "px")
+                 :height (str tile-size "px")
+                 :flex-basis (str (* (/ 1 width) 100) "%")})}])
 
 (defn game-tiles []
   (let [{:keys [tiles width]} @(re-frame/subscribe [::subs/game-state])]
-    [:div {:style {:display "flex",
-                   :flex-wrap "wrap",
-                   :width (* tile-size width)}}
+    [:div.area {:style {:width (* tile-size width)}}
      (map-indexed
        (partial tile->graphic width)
        tiles)]))
@@ -93,9 +78,7 @@
          :player}
         @(re-frame/subscribe [::subs/game-state])]
     [:div
-     [:span {:style {:font-family "monospace"
-                     :font-size "16px"
-                     :color "white"}}
+     [:span.status-bar
       (if (some? player)
         (s/join " "
                 ["HP" (str hp \/ max-hp)
@@ -108,15 +91,10 @@
                  "FLR" (-> floor inc -)])
         "LOADING")]
      (when (not-empty message)
-       [:div {:style {:position "absolute"
-                      :background-color "rgba(0,0,0,0.5)"
-                      :padding "4px 12px"}}
+       [:div.message-log
         (for [[index text] (map-indexed vector (take-last 5 message))]
-          [:p {:style {:font-family "monospace"
-                       :font-size "12px"
-                       :color "white"}
-               :key index}
-              (s/upper-case text)])])]))
+          [:p.log-entry {:key index}
+            (s/upper-case text)])])]))
 
 (defn main-panel []
   [:div (player-info) (game-tiles)])
