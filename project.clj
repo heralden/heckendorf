@@ -24,18 +24,17 @@
 
   :figwheel {:css-dirs ["resources/public/css"]}
 
-  :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
-                   [figwheel-sidecar "0.5.13"]
-                   [com.cemerick/piggieback "0.2.2"]
                    [re-frisk "0.5.3"]
-                   [midje "1.9.1"]]
-
-    :plugins      [[lein-figwheel "0.5.13"]
-                   [lein-doo "0.1.8"]]}}
+                   [midje "1.9.1"]
+                   [cider/piggieback "0.3.10"]
+                   [figwheel-sidecar "0.5.16"]]
+    :source-paths ["src/cljs"]
+    :plugins      [[lein-figwheel "0.5.16"]
+                   [lein-doo "0.1.8"]]
+    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
 
   :cljsbuild
   {:builds
