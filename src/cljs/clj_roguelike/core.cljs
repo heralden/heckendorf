@@ -1,25 +1,21 @@
 (ns clj-roguelike.core
   (:require-macros [cljs.core.async.macros :as asyncm :refer (go go-loop)])
-  (:require [reagent.core :as reagent]
-            [re-frame.core :as re-frame]
-            [clj-roguelike.events :as events]
-            [clj-roguelike.views :as views]
-            [clj-roguelike.config :as config]
-            [cljs.core.async :as async :refer (<! >! put! chan)]
-            [taoensso.sente :as sente :refer (cb-success?)]))
+  (:require [cljs.core.async :as async :refer (<! >! put! chan)]
+            [taoensso.sente :as sente :refer (cb-success?)]
+            [dumdom.core :as dumdom]
+            [clj-roguelike.util :as util]
+            [clj-roguelike.ui :as ui]))
 
-(let [{:keys [chsk ch-recv send-fn state]}
-      (sente/make-channel-socket! "/chsk" {:type :auto })]
-  (def chsk chsk)
-  (def ch-chsk ch-recv)
-  (def chsk-send! send-fn)
-  (def chsk-state state))
+(defonce db (atom {}))
+
+(defonce socket (sente/make-channel-socket! "/chsk" {:type :auto}))
+(def chsk-send! (:send-fn socket))
 
 (defn update-game-board! [game-board]
-  (re-frame/dispatch [::events/game-state game-board]))
+  (swap! db assoc :game game-board))
 
 (defn valid-keychar? [keychar]
-  (let [valids (conj (set views/hotkeys)
+  (let [valids (conj (set util/hotkeys)
                      "ArrowLeft"
                      "ArrowRight"
                      "ArrowUp"
@@ -28,8 +24,8 @@
 
 (defn handle-keys [e]
   (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
-                          5000
-                          update-game-board!)
+                           5000
+                           update-game-board!)
         use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
                           5000
                           update-game-board!)
@@ -44,9 +40,9 @@
 
 (defn request-game-board! []
   (chsk-send! [:game/start] 5000
-    (fn [game-board]
-        (update-game-board! game-board)
-        (.addEventListener js/document "keydown" handle-keys))))
+              (fn [game-board]
+                (update-game-board! game-board)
+                (.addEventListener js/document "keydown" handle-keys))))
 
 (defmulti -event-msg-handler :id)
 
@@ -69,20 +65,24 @@
   (stop-router!)
   (reset! router_
           (sente/start-client-chsk-router!
-            ch-chsk event-msg-handler)))
+            (:ch-recv socket) event-msg-handler)))
 
 (defn dev-setup []
-  (when config/debug?
-    (enable-console-print!)
-    (println "dev mode")))
+  (let [debug? ^boolean goog.DEBUG]
+    (when debug?
+      (enable-console-print!)
+      (println "dev mode"))))
 
-(defn mount-root []
-  (re-frame/clear-subscription-cache!)
-  (reagent/render [views/main-panel]
-                  (.getElementById js/document "app")))
+(defn render [state]
+  (dumdom/render (ui/main-panel state)
+                 (.getElementById js/document "app")))
+
+(defn on-js-reload []
+  (render @db)
+  nil)
 
 (defn ^:export init []
-  (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
-  (mount-root)
-  (start-router!))
+  (add-watch db :render #(render %4))
+  (start-router!)
+  nil)

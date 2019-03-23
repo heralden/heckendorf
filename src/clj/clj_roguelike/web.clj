@@ -4,7 +4,6 @@
               [ring.middleware.defaults]
               [compojure.core :as comp :refer (defroutes GET POST)]
               [compojure.route :as route]
-              [hiccup.core :as hiccup]
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
@@ -13,7 +12,8 @@
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
-                    (get-sch-adapter) {:packer packer})
+                    (get-sch-adapter) {:packer packer
+                                       :csrf-token-fn nil})
       {:keys [ch-recv send-fn connected-uids
               ajax-post-fn ajax-get-or-ws-handshake-fn]}
       chsk-server]

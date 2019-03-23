@@ -91,7 +91,7 @@
   (reduce (fn [area {:keys [type yx]}]
             (cond-> area
               (not= type :dead)
-                (assoc-in [:tiles (yx->i (:width area) yx) :tile] type)))
+              (assoc-in [:tiles (yx->i (:width area) yx) :tile] type)))
           (:area game)
           (:entities game)))
 
@@ -108,25 +108,26 @@
         ;; Add the player object so client can display stats
         (assoc :player player))))
 
-(let [game-atom (atom {})]
-  (defn get-game [client-id]
-    (if (contains? @game-atom client-id)
-      (prepare-game (get @game-atom client-id))
-      (let [new-game (create-game 0 floors nil)]
+(defonce game-atom (atom {}))
+
+(defn get-game [client-id]
+  (if (contains? @game-atom client-id)
+    (prepare-game (get @game-atom client-id))
+    (let [new-game (create-game 0 floors nil)]
+      (swap! game-atom assoc client-id new-game)
+      (prepare-game new-game))))
+(defn update-game [client-id entity-id action]
+  (let [prev-game (get @game-atom client-id)
+        next-game (-> prev-game
+                      (assoc-in [:entities entity-id :next-action] action)
+                      effect-entities)
+        [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
+                                     [prev-game
+                                      next-game])]
+    (if (= prev-floor next-floor)
+      (do (swap! game-atom assoc client-id next-game)
+        (prepare-game next-game))
+      (let [player (get-in next-game [:entities 0])
+            new-game (create-game next-floor floors player)]
         (swap! game-atom assoc client-id new-game)
-        (prepare-game new-game))))
-  (defn update-game [client-id entity-id action]
-    (let [prev-game (get @game-atom client-id)
-          next-game (-> prev-game
-                        (assoc-in [:entities entity-id :next-action] action)
-                        effect-entities)
-          [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
-                                       [prev-game
-                                        next-game])]
-      (if (= prev-floor next-floor)
-        (do (swap! game-atom assoc client-id next-game)
-            (prepare-game next-game))
-        (let [player (get-in next-game [:entities 0])
-              new-game (create-game next-floor floors player)]
-          (swap! game-atom assoc client-id new-game)
-          (prepare-game new-game))))))
+        (prepare-game new-game)))))

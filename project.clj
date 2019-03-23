@@ -1,70 +1,81 @@
 (defproject clj-roguelike "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.9.908"]
-                 [reagent "0.7.0"]
-                 [re-frame "0.10.2"]
-                 [http-kit "2.2.0"]
-                 [com.taoensso/sente "1.12.0"]
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojurescript "1.10.516"]
+                 [http-kit "2.3.0"]
+                 [com.taoensso/sente "1.14.0-RC2"]
                  [com.taoensso/timbre "4.10.0"]
-                 [hiccup "1.0.5"]
                  [ring "1.6.3"]
                  [ring/ring-defaults "0.3.1"]
-                 [compojure "1.6.0"]]
+                 [compojure "1.6.0"]
+                 [cjohansen/dumdom "2019.02.03-3"]
+                 [garden "1.3.6"]
+                 [herb "0.7.2"]]
 
   :main clj-roguelike.web
 
-  :plugins [[lein-cljsbuild "1.1.5"]]
+  :plugins [[lein-cljsbuild "1.1.7"]]
 
   :min-lein-version "2.5.3"
 
   :source-paths ["src/clj", "src/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
-                                    "test/js"]
+                                    "resources/public/css" "test/js"]
 
   :figwheel {:css-dirs ["resources/public/css"]}
+
+  :aliases {"start" ["do" ["cljsbuild" "once" "dev"] "run"]}
+  ;; For a developer environment, you'll want to open two terminals with
+  ;; `lein repl` (then run `(-main)`) and `lein figwheel dev`.
 
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
-                   [re-frisk "0.5.3"]
-                   [midje "1.9.1"]
                    [cider/piggieback "0.3.10"]
-                   [figwheel-sidecar "0.5.16"]]
+                   [figwheel-sidecar "0.5.16"]
+                   [midje "1.9.1"]]
     :source-paths ["src/cljs"]
     :plugins      [[lein-figwheel "0.5.16"]
                    [lein-doo "0.1.8"]]
-    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}}
+    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}
+
+   :uberjar
+   {:prep-tasks ["compile" ["cljsbuild" "once" "min"]]
+    :aot :all}}
+   ;; Note: When using openjdk-9 you might need to add flags
+   ;; `java --add-modules java.xml.bind -jar my-uberjar.jar`
 
   :cljsbuild
   {:builds
    [{:id           "dev"
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "clj-roguelike.core/mount-root"}
+     :figwheel     {:on-jsload "clj-roguelike.core/on-js-reload"}
      :compiler     {:main                 clj-roguelike.core
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
-                    :preloads             [devtools.preload
-                                           re-frisk.preload]
+                    :preloads             [devtools.preload]
                     :external-config      {:devtools/config {:features-to-install :all}}
-                    }}
+                    :warnings             {:fn-arity false}}}
+
 
     {:id           "min"
      :source-paths ["src/cljs"]
+     :jar true
      :compiler     {:main            clj-roguelike.core
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :pretty-print    false}}
+                    :pretty-print    false
+                    :warnings        {:fn-arity false}}}
 
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:main          clj-roguelike.runner
                     :output-to     "resources/public/js/compiled/test.js"
                     :output-dir    "resources/public/js/compiled/test/out"
-                    :optimizations :none}}
-    ]}
+                    :optimizations :none}}]})
 
-  )
+
+
