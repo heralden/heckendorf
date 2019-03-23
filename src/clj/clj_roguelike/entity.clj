@@ -99,8 +99,9 @@
 ;; :atk => base damage they deal to player
 ;; :spd => how fast they move and attack
 ;; :int => how intelligent they behave
-;; :intangible? => whether they can walk through walls
 ;; :vis => longest distance their line of sight can reach (does not effect espers)
+;; :intangible? => whether they can walk through walls
+;; :last-boss? => killing this monster will win the game
 
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
@@ -164,5 +165,6 @@
           :att (rand-range 70 110)
           :spd (rand-range 5 7)
           :int (rand-range 12 15)
-          :vis (rand-range 9 13)}
+          :vis (rand-range 9 13)
+          :last-boss? true}
          data))

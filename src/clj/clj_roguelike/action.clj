@@ -57,7 +57,9 @@
                           (assoc :attacked? true)))
         new-player (-> player
                        (train (if dead? (:hp monster) dmg))
-                       (update :message conj msg))]
+                       (update :message conj msg)
+                       (cond-> (and dead? (:last-boss? monster))
+                               (assoc :game-over :victory)))]
     [new-player new-monster]))
 
 (defmethod encounter [:player :stair-down]
@@ -94,10 +96,14 @@
                       dead? ["You died after receiving" dmg "damage from" monster-name]
                       (zero? dmg) ["You dodged the attack from" monster-name]
                       :else ["You received" dmg "damage from" monster-name]))
-        new-player (-> player
-                       (update :hp - dmg)
-                       (update :message conj msg)
-                       (cond-> dead? (assoc :game-over :death)))]
+        new-player (if dead?
+                     (-> player
+                         (assoc :hp 0)
+                         (update :message conj msg)
+                         (assoc :game-over :death))
+                     (-> player
+                         (update :hp - dmg)
+                         (update :message conj msg)))]
     [monster new-player]))
 
 (defmethod encounter :default

@@ -43,3 +43,16 @@
    :background-image "url('/images/tileset.png')"
    :background-position position
    :background-size (u/px bg-size)})
+
+(defstyled game-over-container []
+  :div
+  {:position "absolute"
+   :top (u/percent 50)
+   :left (u/percent 50)
+   :transform "translate(-50%, -50%)"})
+
+(defstyled game-over-message []
+  :h1
+  {:font-size (u/px 72)
+   :opacity 0.65
+   :color "red"})

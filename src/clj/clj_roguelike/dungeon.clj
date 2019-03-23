@@ -314,15 +314,15 @@
 
 (defn apply-tile-idx [tile area idx]
   "Apply the tile to the specified index in area"
-  (assoc-in area [:tiles idx :tile] tile))
+  (assoc-in area [:tiles idx] tile))
 
-(defn apply-tile-idxs [tile area idxs]
-  "Apply the tile to a vector of indexes in area"
-  (reduce (partial apply-tile-idx tile) area idxs))
+#_(defn apply-tile-idxs [tile area idxs]
+    "Apply the tile to a vector of indexes in area"
+    (reduce (partial apply-tile-idx tile) area idxs))
 
 (defn copy-tile-idx [from-area to-area idx]
   "Copy a tile at index from one area to another"
-  (let [tile (:tile (i->m idx from-area))]
+  (let [tile (i->m idx from-area)]
     (apply-tile-idx tile to-area idx)))
 
 (defn darken-other-idxs [area los-idxs]

@@ -22,7 +22,7 @@
                      "ArrowDown")]
     (contains? valids keychar)))
 
-(defn handle-keys [e]
+(defn handle-keys! [e]
   (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
                            5000
                            update-game-board!)
@@ -42,7 +42,7 @@
   (chsk-send! [:game/start] 5000
               (fn [game-board]
                 (update-game-board! game-board)
-                (.addEventListener js/document "keydown" handle-keys))))
+                (.addEventListener js/document "keydown" handle-keys!))))
 
 (defmulti -event-msg-handler :id)
 

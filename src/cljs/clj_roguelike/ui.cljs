@@ -47,10 +47,12 @@
 (defn tile->pos [tile]
   (-> tile tile->type type->coord coord->pos))
 
-(defcomponent game-tile [{:keys [tile]} index width]
+(defcomponent game-tile [{:keys [tile game-over]} index width]
   (styled/tile {:key index
                 :type (tile->type tile)
-                :position (tile->pos tile)
+                :position (case game-over
+                            :death (coord->pos [2 7])
+                            (tile->pos tile))
                 :size tile-size
                 :bg-size tileset-width
                 :basis (* (/ 1 width) 100)}))
@@ -69,9 +71,15 @@
     :potion ((juxt :grade :type) item)))
 
 (defcomponent player-info
-  [{{:keys [hp max-hp exp lvl equipped inventory message floor]
-     :as player} :player}]
+  [{:keys [hp max-hp exp lvl equipped inventory message floor game-over] :as player}]
   [:div
+   (when game-over
+     (styled/game-over-container
+       (styled/game-over-message
+         (case game-over
+           :victory "YOU WON"
+           :death "YOU DIED"
+           "GAME OVER"))))
    (styled/status-bar
      (if (some? player)
        (s/join " "
@@ -93,5 +101,5 @@
 
 (defcomponent main-panel [{:keys [game]}]
   [:div
-   (player-info game)
+   (player-info (:player game))
    (game-tiles game)])

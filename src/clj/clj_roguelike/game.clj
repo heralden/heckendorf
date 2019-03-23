@@ -88,10 +88,12 @@
 
 (defn normalize-game [game]
   "Merges the :entity vector into the :area:tiles vector according to coordinates"
-  (reduce (fn [area {:keys [type yx]}]
+  (reduce (fn [area {:keys [type yx game-over]}]
             (cond-> area
               (not= type :dead)
-              (assoc-in [:tiles (yx->i (:width area) yx) :tile] type)))
+              (assoc-in [:tiles (yx->i (:width area) yx)]
+                        (cond-> {:tile type}
+                                (= type :player) (assoc :game-over game-over)))))
           (:area game)
           (:entities game)))
 
@@ -116,6 +118,7 @@
     (let [new-game (create-game 0 floors nil)]
       (swap! game-atom assoc client-id new-game)
       (prepare-game new-game))))
+
 (defn update-game [client-id entity-id action]
   (let [prev-game (get @game-atom client-id)
         next-game (-> prev-game
@@ -123,11 +126,13 @@
                       effect-entities)
         [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
                                      [prev-game
-                                      next-game])]
-    (if (= prev-floor next-floor)
-      (do (swap! game-atom assoc client-id next-game)
-        (prepare-game next-game))
-      (let [player (get-in next-game [:entities 0])
-            new-game (create-game next-floor floors player)]
-        (swap! game-atom assoc client-id new-game)
-        (prepare-game new-game)))))
+                                      next-game])
+        game-over? (some? (get-in prev-game [:entities 0 :game-over]))]
+    (cond game-over? (prepare-game prev-game)
+          (= prev-floor next-floor) (do (swap! game-atom assoc client-id next-game)
+                                      (prepare-game next-game))
+          :else
+          (let [player (get-in next-game [:entities 0])
+                new-game (create-game next-floor floors player)]
+            (swap! game-atom assoc client-id new-game)
+            (prepare-game new-game)))))
