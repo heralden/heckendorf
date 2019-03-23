@@ -1,7 +1,7 @@
 (ns clj-roguelike.action
     (:require [clojure.string :as s]
               [clj-roguelike.entity :refer [simplify-keyword train]]
-              [clj-roguelike.dungeon :refer [yx->m]]
+              [clj-roguelike.dungeon :refer [yx->m line-of-sight]]
               [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]))
 
 (defn yx->entity
@@ -47,14 +47,14 @@
         monster-name (->> monster :type name)
         msg (s/join " "
                     (cond
-                      dead?
-                        ["Killed" monster-name "after dealing" dmg "damage"]
-                      (zero? dmg)
-                        [monster-name "dodged your attack"]
+                      dead? ["Killed" monster-name "after dealing" dmg "damage"]
+                      (zero? dmg) [monster-name "dodged your attack"]
                       :else ["Dealt" dmg "damage to" monster-name]))
         new-monster (if dead?
                       {:type :dead, :id (:id monster)}
-                      (update monster :hp - dmg))
+                      (-> monster
+                          (update :hp - dmg)
+                          (assoc :attacked? true)))
         new-player (-> player
                        (train (if dead? (:hp monster) dmg))
                        (update :message conj msg))]
@@ -79,8 +79,26 @@
   [(assoc monster :yx yx)])
 
 (defmethod encounter [:monster :wall]
-  [monster _]
-  [monster])
+  [monster {:keys [yx]}]
+  [(if (:intangible? monster)
+     (assoc monster :yx yx)
+     monster)])
+
+(defmethod encounter [:monster :player]
+  [monster player]
+  (let [dmg (get monster :att)
+        dead? (>= dmg (:hp player))
+        monster-name (->> monster :type name)
+        msg (s/join " "
+                    (cond
+                      dead? ["You died after receiving" dmg "damage from" monster-name]
+                      (zero? dmg) ["You dodged the attack from" monster-name]
+                      :else ["You received" dmg "damage from" monster-name]))
+        new-player (-> player
+                       (update :hp - dmg)
+                       (update :message conj msg)
+                       (cond-> dead? (assoc :game-over :death)))]
+    [monster new-player]))
 
 (defmethod encounter :default
   [entity _target]
@@ -115,7 +133,7 @@
 (defmethod dispatch :walk
   [{:keys [entities], :as game} entity-id]
   (let [{{:keys [dir]} :next-action, [y x] :yx, :as entity}
-          (entities entity-id)
+        (entities entity-id)
         next-yx (case (name dir)
                   "north" [(dec y) x]
                   "east"  [y (inc x)]
@@ -127,7 +145,7 @@
 (defmethod dispatch :use
   [{:keys [entities]} entity-id]
   (let [{{:keys [hotkey]} :next-action, :as entity}
-          (entities entity-id)
+        (entities entity-id)
         index (hotkey->index hotkey)
         item (get-in entity [:inventory index])]
     (case (:type item)
@@ -149,15 +167,56 @@
                      (update :message conj msg))])
       [entity])))
 
+(defn sights-player? [game {:keys [vis yx]}]
+  (let [sighted-types (->> (line-of-sight (:area game) vis yx)
+                           (map (partial yx->entity game))
+                           (map :type)
+                           set)]
+    (contains? sighted-types :player)))
+
+(defn approach-player [game {:keys [yx] :as entity}]
+  (let [[py px] (:yx (get-in game [:entities 0]))
+        [my mx] yx
+        target-yx (-> yx
+                      (cond-> (> py my) (update 0 inc))
+                      (cond-> (> px mx) (update 1 inc))
+                      (cond-> (< py my) (update 0 dec))
+                      (cond-> (< px mx) (update 1 dec)))
+        target-entity (yx->entity game target-yx)]
+    (encounter entity target-entity)))
+
+(defn wander [game {:keys [yx] :as entity}]
+  (let [random-target-entity (yx->entity game (random-neighbor yx))]
+    (encounter entity (rand-nth [random-target-entity entity]))))
+
+(defn behavior [game entity level]
+  (case level
+    :dumb ;; Walks and attacks randomly and aimlessly
+    (wander game entity)
+    :aware ;; Walks and attacks randomly, but will chase (within sight) if attacked
+    (cond
+      (and (:attacked? entity)
+           (sights-player? game entity)) (approach-player game entity)
+      :else (wander game entity))
+    :normal ;; Walks randomly, but will chase when player is in sight
+    (cond
+      (sights-player? game entity) (approach-player game entity)
+      :else (wander game entity))
+    :esper ;; Always aware of player, and will chase relentlessly
+    (approach-player game entity)))
+
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply
 ;; to `player` as the game-loop only runs when their :next-action is defined.
 (defmethod dispatch :default
   [{:keys [entities], :as game} entity-id]
   (let [entity (entities entity-id)
-        next-yx (random-neighbor (get entity :yx))
-        temp-target-entity (yx->entity game next-yx)]
-    (encounter entity (rand-nth [temp-target-entity entity]))))
-;; TODO proper enemy behaviour
+        behave (partial behavior game entity)]
+    (condp >= (:int entity)
+           5 (behave :dumb)
+           10 (behave :aware)
+           15 (behave :normal)
+           20 (behave :esper)
+           (behave :dumb))))
 
 ;;;; Entity ticks for initiating actions/events
 

@@ -49,7 +49,7 @@
 
 (defn train [player exp]
   (let [{new-exp :exp, lvl :lvl, :as new-player}
-          (update player :exp + exp)
+        (update player :exp + exp)
         level-up? (>= new-exp (calc-exp (inc lvl)))]
     (cond-> new-player
       level-up? (-> (update :lvl inc)
@@ -58,11 +58,9 @@
                     (update :message conj "You feel slightly stronger")))))
 
 (defn entity-with [default-m m area entities]
-	(let [new-m {:id (new-id)
-							 :yx (unique-yx area
-														  (:type m)
-														  (set (map :yx entities)))}]
-		(conj entities (merge default-m m new-m))))
+  (let [new-m {:id (new-id)
+               :yx (unique-yx area (:type m) (set (map :yx entities)))}]
+    (conj entities (merge default-m m new-m))))
 
 (defmulti gen-entity
   (fn [m area entities] (:type m)))
@@ -96,51 +94,75 @@
 ;; 11-16: sword
 ;; 16+: dagger
 
+;;;; Explanation of monster stats
+;; :hp => health points
+;; :atk => base damage they deal to player
+;; :spd => how fast they move and attack
+;; :int => how intelligent they behave
+;; :intangible? => whether they can walk through walls
+;; :vis => longest distance their line of sight can reach (does not effect espers)
+
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
          {:hp (rand-range 6 10)
           :att (rand-range 2 5)
-          :spd (rand-range 14 20)}
+          :spd (rand-range 14 20)
+          :int (rand-range 3 11)
+          :vis (rand-range 3 7)}
          data))
 
 (defmethod gen-entity :monster/skeleton [& data]
   (apply entity-with
          {:hp (rand-range 15 25)
           :att (rand-range 4 7)
-          :spd (rand-range 8 11)}
+          :spd (rand-range 8 11)
+          :int (rand-range 4 14)
+          :vis (rand-range 6 11)}
          data))
 
 (defmethod gen-entity :monster/zombie [& data]
   (apply entity-with
          {:hp (rand-range 20 30)
           :att (rand-range 5 12)
-          :spd (rand-range 5 10)}
+          :spd (rand-range 5 10)
+          :int (rand-range 3 13)
+          :vis (rand-range 3 10)}
          data))
 
 (defmethod gen-entity :monster/ghost [& data]
   (apply entity-with
          {:hp (rand-range 50 65)
           :att (rand-range 15 20)
-          :spd (rand-range 10 20)}
+          :spd (rand-range 10 20)
+          :int (rand-range 8 17)
+          :vis (rand-range 8 14)
+          :intangible? true}
          data))
 
 (defmethod gen-entity :monster/grim-reaper [& data]
   (apply entity-with
          {:hp (rand-range 100 126)
           :att (rand-range 30 50)
-          :spd (rand-range 8 14)}
+          :spd (rand-range 8 14)
+          :int (rand-range 13 20)
+          :vis (rand-range 12 20)
+          :intangible? true}
          data))
 
 (defmethod gen-entity :monster/drake [& data]
   (apply entity-with
          {:hp (rand-range 310 350)
           :att (rand-range 40 60)
-          :spd (rand-range 6 9)}
+          :spd (rand-range 6 9)
+          :int (rand-range 9 13)
+          :vis (rand-range 8 12)}
          data))
 
 (defmethod gen-entity :monster/dragon [& data]
   (apply entity-with
          {:hp (rand-range 1000 1100)
           :att (rand-range 70 110)
-          :spd (rand-range 5 7)}
+          :spd (rand-range 5 7)
+          :int (rand-range 12 15)
+          :vis (rand-range 9 13)}
          data))
