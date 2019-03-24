@@ -1,4 +1,4 @@
-(ns clj-roguelike.styled
+(ns clj-roguelike.styles.core
   (:require [garden.units :as u]
             [herb.core :include-macros true :refer [defglobal]])
   (:require-macros [clj-roguelike.util :refer [defstyled]]))
@@ -7,6 +7,36 @@
   [:body {:font-family "monospace"
           :background-color "black"
           :overflow "hidden"}])
+
+(def retro-font
+  {:family "monospace"
+   :weight 600
+   :size (u/px 16)})
+
+(def retro-border
+  {:width (u/px 4)
+   :color "white"
+   :style "solid"
+   :radius (u/px 3)})
+
+(def absolute-center
+  {:position 'absolute
+   :top (u/percent 50)
+   :left (u/percent 50)
+   :transform "translate(-50%, -50%)"})
+
+(defstyled button []
+  :button
+  {:font retro-font
+   :color "white"
+   :background-color "black"
+   :margin [[(u/px 2) (u/px 6)]]
+   :border retro-border})
+
+(defstyled menu []
+  :div
+  {:display "inline-block"
+   :float 'right})
 
 (defstyled status-bar []
   :span
@@ -43,16 +73,3 @@
    :background-image "url('/images/tileset.png')"
    :background-position position
    :background-size (u/px bg-size)})
-
-(defstyled game-over-container []
-  :div
-  {:position "absolute"
-   :top (u/percent 50)
-   :left (u/percent 50)
-   :transform "translate(-50%, -50%)"})
-
-(defstyled game-over-message []
-  :h1
-  {:font-size (u/px 72)
-   :opacity 0.65
-   :color "red"})

@@ -7,6 +7,11 @@
                (range 97 123)
                (range 65 91))))
 
+(defn action [f]
+  (fn [e]
+    (.preventDefault e)
+    (f)))
+
 (defmacro defstyled [fn-name bindings el stylem]
   `(defn ~fn-name [attrs# & rest#]
      (let [body# (cond (map? attrs#) rest#

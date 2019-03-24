@@ -3,19 +3,22 @@
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [clj-roguelike.util :as util]
-            [clj-roguelike.ui :as ui]))
+            [clj-roguelike.util :refer [hotkeys action]]
+            [clj-roguelike.ui :refer [main-panel]]))
 
-(defonce db (atom {}))
+(defonce db (atom {:dialog :intro}))
 
 (defonce socket (sente/make-channel-socket! "/chsk" {:type :auto}))
 (def chsk-send! (:send-fn socket))
 
-(defn update-game-board! [game-board]
+(defn set-game! [game-board]
   (swap! db assoc :game game-board))
 
+(defn set-dialog! [kw]
+  (swap! db assoc :dialog kw))
+
 (defn valid-keychar? [keychar]
-  (let [valids (conj (set util/hotkeys)
+  (let [valids (conj (set hotkeys)
                      "ArrowLeft"
                      "ArrowRight"
                      "ArrowUp"
@@ -25,10 +28,10 @@
 (defn handle-keys! [e]
   (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
                            5000
-                           update-game-board!)
+                           set-game!)
         use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
                           5000
-                          update-game-board!)
+                          set-game!)
         keychar (.-key e)]
     (when (valid-keychar? keychar)
       (case keychar
@@ -41,7 +44,7 @@
 (defn request-game-board! []
   (chsk-send! [:game/start] 5000
               (fn [game-board]
-                (update-game-board! game-board)
+                (set-game! game-board)
                 (.addEventListener js/document "keydown" handle-keys!))))
 
 (defmulti -event-msg-handler :id)
@@ -74,8 +77,13 @@
       (println "dev mode"))))
 
 (defn render [state]
-  (dumdom/render (ui/main-panel state)
-                 (.getElementById js/document "app")))
+  (let [$m {:$close (action #(set-dialog! nil))
+            :$open-intro (action #(set-dialog! :intro))
+            :$open-copy (action #(set-dialog! :copy))
+            :$open-load (action #(set-dialog! :load))
+            :$open-new (action #(set-dialog! :new))}]
+    (dumdom/render (main-panel state $m)
+                   (.getElementById js/document "app"))))
 
 (defn on-js-reload []
   (render @db)

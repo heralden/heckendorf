@@ -2,7 +2,8 @@
   (:require [clojure.string :as s]
             [dumdom.core :refer [defcomponent]]
             [clj-roguelike.util :as util]
-            [clj-roguelike.styled :as styled]))
+            [clj-roguelike.styles.core :as styled]
+            [clj-roguelike.components.dialog :as dialog]))
 
 (def real-tileset-width 128)
 (def real-tile-size 16)
@@ -70,36 +71,47 @@
     :weapon ((juxt :grade :form) item)
     :potion ((juxt :grade :type) item)))
 
-(defcomponent player-info
-  [{:keys [hp max-hp exp lvl equipped inventory message floor game-over] :as player}]
-  [:div
-   (when game-over
-     (styled/game-over-container
-       (styled/game-over-message
-         (case game-over
-           :victory "YOU WON"
-           :death "YOU DIED"
-           "GAME OVER"))))
-   (styled/status-bar
-     (if (some? player)
-       (s/join " "
-               ["HP" (str hp \/ max-hp)
-                "XP" (int exp)
-                "LVL" lvl
-                "EQP" (cond-> equipped
-                              (map? equipped) item->str)
-                "INV" (->> (map item->str inventory)
-                           (zipmap util/hotkeys))
-                "FLR" (-> floor inc -)])
-       "LOADING"))
-   (when (not-empty message)
-     (styled/message-log
-       (for [[index text] (map-indexed vector (take-last 5 message))]
-            (styled/log-entry
-              {:key index}
-              (s/upper-case text)))))])
+(defcomponent game-interface [state $m]
+  (let [{{:keys [player]} :game, dialog :dialog} state
+        {:keys [hp max-hp exp lvl equipped inventory message floor game-over]} player
+        {:keys [$close $open-intro $open-copy $open-load $open-new]} $m]
+    [:div
+     (case dialog
+       :intro (dialog/intro $close)
+       :copy (dialog/copy-game $close)
+       :load (dialog/load-game $close)
+       :new (dialog/new-game $close)
+       (case game-over
+         :victory (dialog/victory $close)
+         :death (dialog/death $close)
+         nil))
+     [:div
+      (styled/status-bar
+        (if (some? player)
+          (s/join " "
+                  ["HP" (str hp \/ max-hp)
+                   "XP" (int exp)
+                   "LVL" lvl
+                   "EQP" (cond-> equipped
+                                 (map? equipped) item->str)
+                   "FLR" (-> floor inc -)])
+          "LOADING"))
+      (styled/menu
+        (styled/button {:onClick $open-intro} "INTRO")
+        (styled/button {:onClick $open-copy} "COPY GAME")
+        (styled/button {:onClick $open-load} "LOAD GAME")
+        (styled/button {:onClick $open-new} "NEW GAME"))]
+     (styled/status-bar
+       (str "INV " (->> (map item->str inventory)
+                        (zipmap util/hotkeys))))
+     (when (not-empty message)
+       (styled/message-log
+         (for [[index text] (map-indexed vector (take-last 5 message))]
+              (styled/log-entry
+                {:key index}
+                (s/upper-case text)))))]))
 
-(defcomponent main-panel [{:keys [game]}]
+(defcomponent main-panel [state $m]
   [:div
-   (player-info (:player game))
-   (game-tiles game)])
+   (game-interface state $m)
+   (game-tiles (:game state))])
