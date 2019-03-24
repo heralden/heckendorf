@@ -82,8 +82,8 @@
        :load (dialog/load-game code $input-code $load-game $close)
        :new (dialog/new-game $new-game $close)
        :game-over (case game-over
-                    :victory (dialog/victory $close)
-                    :death (dialog/death $close)
+                    :victory (dialog/victory $new-game $close)
+                    :death (dialog/death $new-game $close)
                     nil)
        nil)
      [:div

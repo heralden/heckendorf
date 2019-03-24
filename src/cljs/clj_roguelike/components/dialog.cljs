@@ -51,24 +51,24 @@
         (button "SUBMIT")
         (button {:onClick $close} "CLOSE"))))
 
-(defcomponent victory [$close]
+(defcomponent victory [$new-game $close]
   (container
     (title "YOU WON")
     (text "Well done")
     (text "You defeated the dragon and won the game")
     (text "You have earned the respect of #treasureisland")
     (button-group
-      (button "NEW GAME")
+      (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
 
-(defcomponent death [$close]
+(defcomponent death [$new-game $close]
   (container
     (title "YOU DIED")
     (text "Game over")
     (text "You failed to conquer the monsters of the dungeon")
     (text "You are free to start a new game if you dare")
     (button-group
-      (button "NEW GAME")
+      (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
 
 (defcomponent error []
