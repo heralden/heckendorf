@@ -1,5 +1,6 @@
 (ns clj-roguelike.components.dialog
   (:require [dumdom.core :refer [defcomponent]]
+            [clj-roguelike.util :refer [get-uid]]
             [clj-roguelike.styles.dialog :refer [container title text button-group button input]]))
 
 (defcomponent intro [$close]
@@ -17,27 +18,26 @@
     (title "COPY GAME")
     (text "Copy the below code and save it somewhere")
     (text "You can load the game again from anywhere")
-    (input {:type "text"})
+    (input {:type "text", :value (get-uid), :readonly "readonly"})
     (button-group
-      (button "COPY")
       (button {:onClick $close} "CLOSE"))))
 
-(defcomponent load-game [$close]
+(defcomponent load-game [$load-game $close]
   (container
     (title "LOAD GAME")
-    (text "Loading a new game will overwrite the current one")
+    (text "Loading a game will leave the current one")
     (input {:type "text"})
     (button-group
-      (button "LOAD")
+      (button {:onClick $load-game} "LOAD")
       (button {:onClick $close} "CANCEL"))))
 
-(defcomponent new-game [$close]
+(defcomponent new-game [$new-game $close]
   (container
     (title "NEW GAME")
     (text "This will overwrite your current game with a fresh one")
     (text "Are you sure")
     (button-group
-      (button "YES")
+      (button {:onClick $new-game} "YES")
       (button {:onClick $close} "NO"))))
 
 #_(defcomponent victory [$close]
@@ -66,7 +66,7 @@
     (title "YOU DIED")
     (text "Game over")
     (text "You failed to conquer the monsters of the dungeon")
-    (text "You are free to start a new game if have not given up")
+    (text "You are free to start a new game if you dare")
     (button-group
       (button "NEW GAME")
       (button {:onClick $close} "CLOSE"))))

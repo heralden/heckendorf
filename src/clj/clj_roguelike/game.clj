@@ -112,12 +112,15 @@
 
 (defonce game-atom (atom {}))
 
+(defn new-game [client-id]
+  (let [game (create-game 0 floors nil)]
+    (swap! game-atom assoc client-id game)
+    (prepare-game game)))
+
 (defn get-game [client-id]
   (if (contains? @game-atom client-id)
     (prepare-game (get @game-atom client-id))
-    (let [new-game (create-game 0 floors nil)]
-      (swap! game-atom assoc client-id new-game)
-      (prepare-game new-game))))
+    (new-game client-id)))
 
 (defn update-game [client-id entity-id action]
   (let [prev-game (get @game-atom client-id)
@@ -128,7 +131,7 @@
                                      [prev-game
                                       next-game])
         game-over? (some? (get-in prev-game [:entities 0 :game-over]))]
-    (cond game-over? (prepare-game prev-game)
+    (cond game-over? :game-over
           (= prev-floor next-floor) (do (swap! game-atom assoc client-id next-game)
                                       (prepare-game next-game))
           :else

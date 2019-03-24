@@ -5,7 +5,7 @@
                  [com.taoensso/sente "1.14.0-RC2"]
                  [com.taoensso/timbre "4.10.0"]
                  [ring "1.6.3"]
-                 [ring/ring-defaults "0.3.1"]
+                 [ring/ring-defaults "0.3.2"]
                  [compojure "1.6.0"]
                  [cjohansen/dumdom "2019.02.03-3"]
                  [garden "1.3.6"]

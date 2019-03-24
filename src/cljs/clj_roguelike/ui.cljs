@@ -74,17 +74,18 @@
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog} state
         {:keys [hp max-hp exp lvl equipped inventory message floor game-over]} player
-        {:keys [$close $open-intro $open-copy $open-load $open-new]} $m]
+        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game $load-game]} $m]
     [:div
      (case dialog
        :intro (dialog/intro $close)
        :copy (dialog/copy-game $close)
-       :load (dialog/load-game $close)
-       :new (dialog/new-game $close)
-       (case game-over
-         :victory (dialog/victory $close)
-         :death (dialog/death $close)
-         nil))
+       :load (dialog/load-game $load-game $close)
+       :new (dialog/new-game $new-game $close)
+       :game-over (case game-over
+                    :victory (dialog/victory $close)
+                    :death (dialog/death $close)
+                    nil)
+       nil)
      [:div
       (styled/status-bar
         (if (some? player)
@@ -101,9 +102,10 @@
         (styled/button {:onClick $open-copy} "COPY GAME")
         (styled/button {:onClick $open-load} "LOAD GAME")
         (styled/button {:onClick $open-new} "NEW GAME"))]
-     (styled/status-bar
-       (str "INV " (->> (map item->str inventory)
-                        (zipmap util/hotkeys))))
+     (when (some? player)
+       (styled/status-bar
+         (str "INV " (->> (map item->str inventory)
+                          (zipmap util/hotkeys)))))
      (when (not-empty message)
        (styled/message-log
          (for [[index text] (map-indexed vector (take-last 5 message))]

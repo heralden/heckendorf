@@ -3,19 +3,31 @@
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [clj-roguelike.util :refer [hotkeys action]]
+            [clj-roguelike.util :refer [hotkeys action get-uid]]
             [clj-roguelike.ui :refer [main-panel]]))
 
 (defonce db (atom {:dialog :intro}))
 
-(defonce socket (sente/make-channel-socket! "/chsk" {:type :auto}))
-(def chsk-send! (:send-fn socket))
+(defn with-uid [opts]
+  (let [uid (get-uid)]
+    (if (some? uid)
+      (assoc opts :client-id uid)
+      opts)))
 
-(defn set-game! [game-board]
-  (swap! db assoc :game game-board))
+(defonce socket
+  (sente/make-channel-socket-client! "/chsk" nil (with-uid {:type :auto})))
+(def chsk-send! (:send-fn socket))
 
 (defn set-dialog! [kw]
   (swap! db assoc :dialog kw))
+
+(defn set-game!
+  "game-board can also be a keyword like :game-over, in which case we want to
+  set :dialog to this value."
+  [game-board]
+  (if (map? game-board)
+    (swap! db assoc :game game-board)
+    (set-dialog! game-board)))
 
 (defn valid-keychar? [keychar]
   (let [valids (conj (set hotkeys)
@@ -41,11 +53,18 @@
         "ArrowDown"  (walk! :south)
         (use! keychar)))))
 
-(defn request-game-board! []
-  (chsk-send! [:game/start] 5000
+(defn request-game! []
+  (chsk-send! [:game/start]
+              5000
               (fn [game-board]
                 (set-game! game-board)
                 (.addEventListener js/document "keydown" handle-keys!))))
+
+(defn request-new-game! []
+  (chsk-send! [:game/new]
+              5000
+              (fn [game-board]
+                (set-game! game-board))))
 
 (defmulti -event-msg-handler :id)
 
@@ -59,8 +78,10 @@
 
 (defmethod -event-msg-handler :chsk/state
   [{:as ev-msg :keys [event]}]
-  (when (:first-open? (second (second event)))
-    (request-game-board!)))
+  (let [{:keys [first-open? uid]} (second (second event))]
+    (when first-open?
+      (.setItem js/localStorage "uid" uid)
+      (request-game!))))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-f @router_] (stop-f)))
@@ -81,7 +102,11 @@
             :$open-intro (action #(set-dialog! :intro))
             :$open-copy (action #(set-dialog! :copy))
             :$open-load (action #(set-dialog! :load))
-            :$open-new (action #(set-dialog! :new))}]
+            :$open-new (action #(set-dialog! :new))
+            :$new-game (action #(do (request-new-game!)
+                                    (set-dialog! nil)))
+            :$load-game (action #(do (println "TODO")
+                                     (set-dialog! nil)))}]
     (dumdom/render (main-panel state $m)
                    (.getElementById js/document "app"))))
 

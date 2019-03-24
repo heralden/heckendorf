@@ -12,6 +12,9 @@
     (.preventDefault e)
     (f)))
 
+#?(:cljs (defn get-uid []
+           (.getItem js/localStorage "uid")))
+
 (defmacro defstyled [fn-name bindings el stylem]
   `(defn ~fn-name [attrs# & rest#]
      (let [body# (cond (map? attrs#) rest#

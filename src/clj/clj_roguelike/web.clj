@@ -2,17 +2,20 @@
     (:require [org.httpkit.server :as http-kit]
               [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
               [ring.middleware.defaults]
+              [ring.middleware.anti-forgery :as anti-forgery]
               [compojure.core :as comp :refer (defroutes GET POST)]
               [compojure.route :as route]
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.game :refer [get-game update-game]]
+              [clj-roguelike.game :refer [get-game update-game new-game]]
               [clojure.java.io :as io]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
                     (get-sch-adapter) {:packer packer
+                                       :user-id-fn (fn [ring-req]
+                                                     (:client-id ring-req))
                                        :csrf-token-fn nil})
       {:keys [ch-recv send-fn connected-uids
               ajax-post-fn ajax-get-or-ws-handshake-fn]}
@@ -58,6 +61,10 @@
 (defmethod -event-msg-handler :game/start
   [{:keys [?reply-fn client-id]}]
   (?reply-fn (get-game client-id)))
+
+(defmethod -event-msg-handler :game/new
+  [{:keys [?reply-fn client-id]}]
+  (?reply-fn (new-game client-id)))
 
 (defmethod -event-msg-handler :game/action
   [{:keys [?data ?reply-fn client-id]}]
