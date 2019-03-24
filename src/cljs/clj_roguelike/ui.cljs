@@ -72,14 +72,14 @@
     :potion ((juxt :grade :type) item)))
 
 (defcomponent game-interface [state $m]
-  (let [{{:keys [player]} :game, dialog :dialog} state
+  (let [{{:keys [player]} :game, dialog :dialog, {:keys [code]} :input} state
         {:keys [hp max-hp exp lvl equipped inventory message floor game-over]} player
-        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game $load-game]} $m]
+        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game $load-game $input-code]} $m]
     [:div
      (case dialog
        :intro (dialog/intro $close)
        :copy (dialog/copy-game $close)
-       :load (dialog/load-game $load-game $close)
+       :load (dialog/load-game code $input-code $load-game $close)
        :new (dialog/new-game $new-game $close)
        :game-over (case game-over
                     :victory (dialog/victory $close)

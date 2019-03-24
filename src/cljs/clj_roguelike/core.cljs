@@ -3,7 +3,7 @@
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [clj-roguelike.util :refer [hotkeys action get-uid]]
+            [clj-roguelike.util :refer [hotkeys action get-uid set-uid!]]
             [clj-roguelike.ui :refer [main-panel]]))
 
 (defonce db (atom {:dialog :intro}))
@@ -17,6 +17,9 @@
 (defonce socket
   (sente/make-channel-socket-client! "/chsk" nil (with-uid {:type :auto})))
 (def chsk-send! (:send-fn socket))
+
+(defn set-input! [k v]
+  (swap! db assoc-in [:input k] v))
 
 (defn set-dialog! [kw]
   (swap! db assoc :dialog kw))
@@ -80,7 +83,7 @@
   [{:as ev-msg :keys [event]}]
   (let [{:keys [first-open? uid]} (second (second event))]
     (when first-open?
-      (.setItem js/localStorage "uid" uid)
+      (set-uid! uid)
       (request-game!))))
 
 (defonce router_ (atom nil))
@@ -105,8 +108,10 @@
             :$open-new (action #(set-dialog! :new))
             :$new-game (action #(do (request-new-game!)
                                     (set-dialog! nil)))
-            :$load-game (action #(do (println "TODO")
-                                     (set-dialog! nil)))}]
+            :$load-game (action #(do (set-uid! (get-in @db [:input :code]))
+                                     (.reload js/location)))
+            :$input-code (fn [e]
+                           (set-input! :code (.. e -target -value)))}]
     (dumdom/render (main-panel state $m)
                    (.getElementById js/document "app"))))
 

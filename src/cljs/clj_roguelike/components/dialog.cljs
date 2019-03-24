@@ -22,11 +22,11 @@
     (button-group
       (button {:onClick $close} "CLOSE"))))
 
-(defcomponent load-game [$load-game $close]
+(defcomponent load-game [code $input-code $load-game $close]
   (container
     (title "LOAD GAME")
     (text "Loading a game will leave the current one")
-    (input {:type "text"})
+    (input {:type "text", :value code, :onChange $input-code})
     (button-group
       (button {:onClick $load-game} "LOAD")
       (button {:onClick $close} "CANCEL"))))
