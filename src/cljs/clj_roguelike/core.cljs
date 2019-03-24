@@ -41,20 +41,21 @@
     (contains? valids keychar)))
 
 (defn handle-keys! [e]
-  (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
-                           5000
-                           set-game!)
-        use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
-                          5000
-                          set-game!)
-        keychar (.-key e)]
-    (when (valid-keychar? keychar)
-      (case keychar
-        "ArrowLeft"  (walk! :west)
-        "ArrowRight" (walk! :east)
-        "ArrowUp"    (walk! :north)
-        "ArrowDown"  (walk! :south)
-        (use! keychar)))))
+  (when (nil? (:dialog @db))
+    (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
+                             5000
+                             set-game!)
+          use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
+                            5000
+                            set-game!)
+          keychar (.-key e)]
+      (when (valid-keychar? keychar)
+        (case keychar
+          "ArrowLeft"  (walk! :west)
+          "ArrowRight" (walk! :east)
+          "ArrowUp"    (walk! :north)
+          "ArrowDown"  (walk! :south)
+          (use! keychar))))))
 
 (defn request-game! []
   (chsk-send! [:game/start]
