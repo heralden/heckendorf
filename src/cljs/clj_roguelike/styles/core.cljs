@@ -27,11 +27,15 @@
 
 (defstyled button []
   :button
+  ^{:pseudo {:focus {:text-decoration {:color 'white
+                                       :style 'solid
+                                       :line 'underline}
+                     :outline 0}}}
   {:font retro-font
-   :color "white"
-   :background-color "black"
-   :margin [[(u/px 2) (u/px 6)]]
-   :border retro-border})
+   :border retro-border
+   :color 'white
+   :background-color 'black
+   :margin [[(u/px 2) (u/px 6)]]})
 
 (defstyled menu []
   :div

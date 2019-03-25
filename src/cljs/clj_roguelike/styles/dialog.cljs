@@ -45,6 +45,10 @@
 
 (defstyled button []
   :button
+  ^{:pseudo {:focus {:text-decoration {:color 'white
+                                       :style 'solid
+                                       :line 'underline}
+                     :outline 0}}}
   {:font retro-font
    :border retro-border
    :color 'white
