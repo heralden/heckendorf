@@ -9,7 +9,8 @@
   [{:keys [area entities]} yx]
   (or (first (filter #(= yx (:yx %)) entities))
       ;; Tiles aren't really entities, so let's "entitize" them.
-      {:type (:tile (yx->m yx area)) :yx yx}))
+      {:type (or (:tile (yx->m yx area)) :boundary)
+       :yx yx}))
 
 (defn vary [x]
   (Math/round (* x (+ (rand) 0.5))))
@@ -41,11 +42,15 @@
   [player _]
   [player])
 
+(defmethod encounter [:player :boundary]
+  [player _]
+  [player])
+
 (defmethod encounter [:player :monster]
   [player monster]
   (let [dmg (vary (dmg-with (:str player)
-                           (:spd monster)
-                           (:equipped player)))
+                            (:spd monster)
+                            (:equipped player)))
         dead? (>= dmg (:hp monster))
         monster-name (->> monster :type name)
         msg (s/join " "
@@ -88,6 +93,10 @@
   [(if (:intangible? monster)
      (assoc monster :yx yx)
      monster)])
+
+(defmethod encounter [:monster :boundary]
+  [monster _]
+  [monster])
 
 (defmethod encounter [:monster :player]
   [monster player]
