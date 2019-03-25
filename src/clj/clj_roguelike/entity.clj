@@ -106,8 +106,8 @@
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
          {:hp (rand-range 6 10)
-          :att (rand-range 2 5)
-          :spd (rand-range 14 20)
+          :att (rand-range 1 3)
+          :spd (rand-range 12 16)
           :int (rand-range 3 11)
           :vis (rand-range 3 7)}
          data))
@@ -132,9 +132,9 @@
 
 (defmethod gen-entity :monster/ghost [& data]
   (apply entity-with
-         {:hp (rand-range 50 65)
-          :att (rand-range 15 20)
-          :spd (rand-range 10 20)
+         {:hp (rand-range 25 40)
+          :att (rand-range 8 14)
+          :spd (rand-range 10 18)
           :int (rand-range 8 17)
           :vis (rand-range 8 14)
           :intangible? true}
@@ -142,8 +142,8 @@
 
 (defmethod gen-entity :monster/grim-reaper [& data]
   (apply entity-with
-         {:hp (rand-range 100 126)
-          :att (rand-range 30 50)
+         {:hp (rand-range 60 80)
+          :att (rand-range 18 25)
           :spd (rand-range 8 14)
           :int (rand-range 13 20)
           :vis (rand-range 12 20)
@@ -152,9 +152,9 @@
 
 (defmethod gen-entity :monster/drake [& data]
   (apply entity-with
-         {:hp (rand-range 310 350)
-          :att (rand-range 40 60)
-          :spd (rand-range 6 9)
+         {:hp (rand-range 140 200)
+          :att (rand-range 28 34)
+          :spd (rand-range 6 8)
           :int (rand-range 9 13)
           :vis (rand-range 8 12)}
          data))
@@ -162,8 +162,8 @@
 (defmethod gen-entity :monster/dragon [& data]
   (apply entity-with
          {:hp (rand-range 1000 1100)
-          :att (rand-range 70 110)
-          :spd (rand-range 5 7)
+          :att (rand-range 60 65)
+          :spd (rand-range 5 6)
           :int (rand-range 12 15)
           :vis (rand-range 9 13)
           :last-boss? true}

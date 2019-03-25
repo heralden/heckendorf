@@ -1,8 +1,8 @@
 (ns clj-roguelike.random)
 
 (defn rand-range [min max]
-  "Returns a number between min (inclusive) and max (exclusive)"
-  (+ min (rand-int (- max min))))
+  "Returns a number between min (inclusive) and max (inclusive)"
+  (+ min (rand-int (- (inc max) min))))
 
 (defn perc-chance [perc]
   "Has a perc percent chance of returning true instead of false"

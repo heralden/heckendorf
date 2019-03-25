@@ -11,6 +11,9 @@
       ;; Tiles aren't really entities, so let's "entitize" them.
       {:type (:tile (yx->m yx area)) :yx yx}))
 
+(defn vary [x]
+  (Math/round (* x (+ (rand) 0.5))))
+
 (defn random-neighbor
   "Returns the yx vector of a random neighboring coordinate of `yx`."
   [[y x]]
@@ -40,9 +43,9 @@
 
 (defmethod encounter [:player :monster]
   [player monster]
-  (let [dmg (dmg-with (:str player)
-                      (:spd monster)
-                      (:equipped player))
+  (let [dmg (vary (dmg-with (:str player)
+                           (:spd monster)
+                           (:equipped player)))
         dead? (>= dmg (:hp monster))
         monster-name (->> monster :type name)
         msg (s/join " "
@@ -88,7 +91,7 @@
 
 (defmethod encounter [:monster :player]
   [monster player]
-  (let [dmg (get monster :att)
+  (let [dmg (vary (get monster :att))
         dead? (>= dmg (:hp player))
         monster-name (->> monster :type name)
         msg (s/join " "

@@ -48,9 +48,9 @@
       (calc-dmg str-multiplier grade-multiplier enemy-spd weapon))))
 
 (def potion
-  {:minor #(rand-range 10 20)
+  {:minor #(rand-range 20 30)
    :lesser #(rand-range 40 60)
-   :greater #(rand-range 160 250)})
+   :greater #(rand-range 180 250)})
 
 (defn potion->hp [{:keys [grade type]}]
   (assert (= type :potion))
@@ -73,24 +73,25 @@
 (defmulti gen-item :type)
 
 (defmethod gen-item :chest/common [_]
-  (perc-vec [[50 #(rand-potion :minor)]
-             [20 #(rand-potion :minor)]
-             [70 #(rand-weapon :common)]]))
+  (perc-vec [[80 #(rand-potion :minor)]
+             [50 #(rand-potion :minor)]
+             [60 #(rand-weapon :common)]]))
 
 (defmethod gen-item :chest/uncommon [_]
-  (perc-vec [[80 #(rand-potion :minor)]
-             [40 #(rand-potion :lesser)]
-             [70 #(rand-weapon :uncommon)]]))
+  (perc-vec [[90 #(rand-potion :minor)]
+             [40 #(rand-potion :minor)]
+             [50 #(rand-potion :lesser)]
+             [60 #(rand-weapon :uncommon)]]))
 
 (defmethod gen-item :chest/rare [_]
-  (perc-vec [[70 #(rand-potion :lesser)]
-             [40 #(rand-potion :greater)]
-             [60 #(rand-weapon :rare)]
-             [70 #(rand-weapon :uncommon)]]))
+  (perc-vec [[80 #(rand-potion :lesser)]
+             [60 #(rand-potion :greater)]
+             [70 #(rand-potion :minor)]
+             [60 #(rand-weapon :rare)]]))
 
 (defmethod gen-item :chest/epic [_]
-  (perc-vec [[60 #(rand-potion :greater)]
-             [50 #(rand-potion :greater)]
-             [50 #(rand-potion :lesser)]
+  (perc-vec [[80 #(rand-potion :greater)]
+             [60 #(rand-potion :lesser)]
+             [50 #(rand-potion :minor)]
              [60 #(rand-weapon :epic)]
              [80 #(rand-weapon :rare)]]))

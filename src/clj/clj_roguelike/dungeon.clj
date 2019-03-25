@@ -3,7 +3,7 @@
 
 (def ^:const additional-tunnel-perc 10)
 (def ^:const min-room-length 2)
-(def ^:const max-room-length 9)
+(def ^:const max-room-length 8)
 
 (let [i (atom 0)]
   (defn- new-id
