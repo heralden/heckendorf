@@ -1,4 +1,4 @@
-(defproject clj-roguelike "0.1.0-SNAPSHOT"
+(defproject heckendorf "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.10.516"]
                  [http-kit "2.3.0"]
@@ -11,7 +11,7 @@
                  [garden "1.3.6"]
                  [herb "0.7.2"]]
 
-  :main clj-roguelike.web
+  :main heckendorf.web
 
   :plugins [[lein-cljsbuild "1.1.7"]]
 
@@ -49,8 +49,8 @@
   {:builds
    [{:id           "dev"
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "clj-roguelike.core/on-js-reload"}
-     :compiler     {:main                 clj-roguelike.core
+     :figwheel     {:on-jsload "heckendorf.core/on-js-reload"}
+     :compiler     {:main                 heckendorf.core
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
@@ -63,7 +63,7 @@
     {:id           "min"
      :source-paths ["src/cljs"]
      :jar true
-     :compiler     {:main            clj-roguelike.core
+     :compiler     {:main            heckendorf.core
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
@@ -72,7 +72,7 @@
 
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
-     :compiler     {:main          clj-roguelike.runner
+     :compiler     {:main          heckendorf.runner
                     :output-to     "resources/public/js/compiled/test.js"
                     :output-dir    "resources/public/js/compiled/test/out"
                     :optimizations :none}}]})

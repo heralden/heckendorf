@@ -1,6 +1,6 @@
-(ns clj-roguelike.core-test
+(ns heckendorf.core-test
   (:require [cljs.test :refer-macros [deftest testing is]]
-            [clj-roguelike.core :as core]))
+            [heckendorf.core :as core]))
 
 (deftest fake-test
   (testing "fake description"

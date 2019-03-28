@@ -1,4 +1,4 @@
-(ns clj-roguelike.web
+(ns heckendorf.web
     (:require [org.httpkit.server :as http-kit]
               [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
               [ring.middleware.defaults]
@@ -8,7 +8,7 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [clj-roguelike.game :refer [get-game update-game new-game]]
+              [heckendorf.game :refer [get-game update-game new-game]]
               [clojure.java.io :as io]))
 
 (let [packer :edn

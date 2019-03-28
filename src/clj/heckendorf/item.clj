@@ -1,6 +1,6 @@
-(ns clj-roguelike.item
-  (:require [clj-roguelike.random :refer [rand-range perc-vec]]
-            [clj-roguelike.data :refer [materials grades]]))
+(ns heckendorf.item
+  (:require [heckendorf.random :refer [rand-range perc-vec]]
+            [heckendorf.data :refer [materials grades]]))
 
 (def weapons
   {:fist       {:att 1 :spd 9}

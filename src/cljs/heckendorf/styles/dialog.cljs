@@ -1,7 +1,7 @@
-(ns clj-roguelike.styles.dialog
+(ns heckendorf.styles.dialog
   (:require [garden.units :as u]
-            [clj-roguelike.styles.core :refer [retro-font retro-border absolute-center]])
-  (:require-macros [clj-roguelike.util :refer [defstyled]]))
+            [heckendorf.styles.core :refer [retro-font retro-border absolute-center]])
+  (:require-macros [heckendorf.util :refer [defstyled]]))
 
 (defstyled container []
   :div

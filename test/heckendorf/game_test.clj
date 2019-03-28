@@ -1,5 +1,5 @@
-(ns clj-roguelike.game-test
-    (:require [clj-roguelike.game :refer :all]
+(ns heckendorf.game-test
+    (:require [heckendorf.game :refer :all]
               [midje.sweet :refer :all]))
 
 (def game {:area

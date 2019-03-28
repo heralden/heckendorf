@@ -1,7 +1,7 @@
-(ns clj-roguelike.styles.core
+(ns heckendorf.styles.core
   (:require [garden.units :as u]
             [herb.core :include-macros true :refer [defglobal]])
-  (:require-macros [clj-roguelike.util :refer [defstyled]]))
+  (:require-macros [heckendorf.util :refer [defstyled]]))
 
 (defglobal global
   [:body {:font-family "monospace"

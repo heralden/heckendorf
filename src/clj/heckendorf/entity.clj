@@ -1,6 +1,6 @@
-(ns clj-roguelike.entity
-    (:require [clj-roguelike.random :refer [rand-range]]
-              [clj-roguelike.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]))
+(ns heckendorf.entity
+    (:require [heckendorf.random :refer [rand-range]]
+              [heckendorf.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]))
 
 (let [i (atom -1)]
   (defn- new-id

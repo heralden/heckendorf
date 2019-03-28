@@ -1,8 +1,14 @@
-# clj-roguelike
+# heckendorf
 
 Procedurally generated roguelike dungeon crawler game implemented as a fullstack Clojure webapp.
 
-Once I'm happy with how the game plays, I'll probably give it a nifty name and host it somewhere.
+Previously known as clj-roguelike. It's nearing completion, so I'll probably host it somewhere soon.
+
+# Running
+
+```
+lein start
+```
 
 # Development
 
@@ -10,7 +16,7 @@ Once I'm happy with how the game plays, I'll probably give it a nifty name and h
 
 ```
 lein repl
-clj-roguelike.web=> (-main)
+heckendorf.web=> (-main)
 ```
 
 Or `lein run` if you haven't been REPLightened yet.

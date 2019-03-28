@@ -1,9 +1,9 @@
-(ns clj-roguelike.action
+(ns heckendorf.action
     (:require [clojure.string :as s]
-              [clj-roguelike.entity :refer [simplify-keyword train]]
-              [clj-roguelike.dungeon :refer [yx->m line-of-sight]]
-              [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]
-              [clj-roguelike.data :refer [hotkey->index]]))
+              [heckendorf.entity :refer [simplify-keyword train]]
+              [heckendorf.dungeon :refer [yx->m line-of-sight]]
+              [heckendorf.item :refer [dmg-with gen-item potion->hp]]
+              [heckendorf.data :refer [hotkey->index]]))
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."

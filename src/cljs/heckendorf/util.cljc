@@ -1,4 +1,4 @@
-(ns clj-roguelike.util)
+(ns heckendorf.util)
 
 (defn action [f]
   (fn [e]

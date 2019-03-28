@@ -1,11 +1,11 @@
-(ns clj-roguelike.core
+(ns heckendorf.core
   (:require-macros [cljs.core.async.macros :as asyncm :refer (go go-loop)])
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [clj-roguelike.data :refer [hotkeys]]
-            [clj-roguelike.util :refer [action get-uid set-uid!]]
-            [clj-roguelike.ui :refer [main-panel]]))
+            [heckendorf.data :refer [hotkeys]]
+            [heckendorf.util :refer [action get-uid set-uid!]]
+            [heckendorf.ui :refer [main-panel]]))
 
 (defonce db (atom {:dialog :intro}))
 

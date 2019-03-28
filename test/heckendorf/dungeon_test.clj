@@ -1,5 +1,5 @@
-(ns clj-roguelike.dungeon-test
-  (:require [clj-roguelike.dungeon :refer :all]
+(ns heckendorf.dungeon-test
+  (:require [heckendorf.dungeon :refer :all]
             [midje.sweet :refer :all]))
 
 (fact "Creates an area"

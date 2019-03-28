@@ -1,5 +1,5 @@
-(ns clj-roguelike.dungeon
-  (:require [clj-roguelike.random :refer [rand-range perc-chance]]))
+(ns heckendorf.dungeon
+  (:require [heckendorf.random :refer [rand-range perc-chance]]))
 
 (def ^:const additional-tunnel-perc 10)
 (def ^:const min-room-length 2)

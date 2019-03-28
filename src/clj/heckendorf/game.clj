@@ -1,8 +1,8 @@
-(ns clj-roguelike.game
-    (:require [clj-roguelike.entity :refer [gen-entity entity-with reset-id]]
-              [clj-roguelike.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
-              [clj-roguelike.random :refer [rand-range]]
-              [clj-roguelike.action :refer [effect-entities]]))
+(ns heckendorf.game
+    (:require [heckendorf.entity :refer [gen-entity entity-with reset-id]]
+              [heckendorf.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
+              [heckendorf.random :refer [rand-range]]
+              [heckendorf.action :refer [effect-entities]]))
 
 (def ^:const area-width 40)
 (def ^:const area-height 30)

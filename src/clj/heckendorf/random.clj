@@ -1,4 +1,4 @@
-(ns clj-roguelike.random)
+(ns heckendorf.random)
 
 (defn rand-range [min max]
   "Returns a number between min (inclusive) and max (inclusive)"

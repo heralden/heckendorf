@@ -1,4 +1,4 @@
-(ns clj-roguelike.data)
+(ns heckendorf.data)
 
 (def hotkeys
   #{"s" "d" "f" "g"

@@ -1,7 +1,7 @@
-(ns clj-roguelike.components.dialog
+(ns heckendorf.components.dialog
   (:require [dumdom.core :refer [defcomponent]]
-            [clj-roguelike.util :refer [get-uid]]
-            [clj-roguelike.styles.dialog :refer [container title text button-group button input]]))
+            [heckendorf.util :refer [get-uid]]
+            [heckendorf.styles.dialog :refer [container title text button-group button input]]))
 
 (defcomponent intro [$close]
   (container

@@ -1,9 +1,9 @@
-(ns clj-roguelike.ui
+(ns heckendorf.ui
   (:require [clojure.string :as s]
             [dumdom.core :refer [defcomponent]]
-            [clj-roguelike.data :refer [inv->pots inv->weps]]
-            [clj-roguelike.styles.core :as styled]
-            [clj-roguelike.components.dialog :as dialog]))
+            [heckendorf.data :refer [inv->pots inv->weps]]
+            [heckendorf.styles.core :as styled]
+            [heckendorf.components.dialog :as dialog]))
 
 (def real-tileset-width 128)
 (def real-tile-size 16)
