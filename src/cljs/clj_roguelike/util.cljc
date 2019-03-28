@@ -1,12 +1,5 @@
 (ns clj-roguelike.util)
 
-(def hotkeys
-  "All numbers and lower/uppercase letters"
-  (map (comp str char)
-       (concat (range 48 58)
-               (range 97 123)
-               (range 65 91))))
-
 (defn action [f]
   (fn [e]
     (.preventDefault e)

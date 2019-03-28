@@ -39,12 +39,14 @@
 
 (defstyled menu []
   :div
-  {:display "inline-block"
-   :float 'right})
+  {:position 'absolute
+   :top (u/px 8)
+   :right (u/px 5)})
 
 (defstyled status-bar []
-  :span
-  {:font-size (u/px 16)
+  :p
+  {:margin [[(u/px 2) 0]]
+   :font-size (u/px 16)
    :color "white"})
 
 (defstyled message-log []

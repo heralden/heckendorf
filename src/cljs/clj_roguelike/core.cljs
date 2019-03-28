@@ -3,7 +3,8 @@
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [clj-roguelike.util :refer [hotkeys action get-uid set-uid!]]
+            [clj-roguelike.data :refer [hotkeys]]
+            [clj-roguelike.util :refer [action get-uid set-uid!]]
             [clj-roguelike.ui :refer [main-panel]]))
 
 (defonce db (atom {:dialog :intro}))
@@ -32,14 +33,6 @@
     (swap! db assoc :game game-board)
     (set-dialog! game-board)))
 
-(defn valid-keychar? [keychar]
-  (let [valids (conj (set hotkeys)
-                     "ArrowLeft"
-                     "ArrowRight"
-                     "ArrowUp"
-                     "ArrowDown")]
-    (contains? valids keychar)))
-
 (defn handle-keys! [e]
   (when (nil? (:dialog @db))
     (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
@@ -49,7 +42,7 @@
                             5000
                             set-game!)
           keychar (.-key e)]
-      (when (valid-keychar? keychar)
+      (when (contains? hotkeys keychar)
         (case keychar
           "ArrowLeft"  (walk! :west)
           "ArrowRight" (walk! :east)

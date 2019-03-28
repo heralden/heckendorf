@@ -2,7 +2,8 @@
     (:require [clojure.string :as s]
               [clj-roguelike.entity :refer [simplify-keyword train]]
               [clj-roguelike.dungeon :refer [yx->m line-of-sight]]
-              [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]))
+              [clj-roguelike.item :refer [dmg-with gen-item potion->hp]]
+              [clj-roguelike.data :refer [hotkey->index]]))
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
@@ -131,15 +132,6 @@
 ; {:type :attack}
 ; {:type :use} ; using potions or equipping items
 
-(def hotkeys
-  (map (comp str char)
-       (concat (range 48 58)
-               (range 97 123)
-               (range 65 91))))
-
-(def hotkey->index
-  (zipmap hotkeys (range)))
-
 (defn remvec [v i]
   (vec (concat (subvec v 0 i)
                (subvec v (inc i)))))
@@ -162,10 +154,10 @@
 
 (defmethod dispatch :use
   [{:keys [entities]} entity-id]
-  (let [{{:keys [hotkey]} :next-action, :as entity}
-        (entities entity-id)
-        index (hotkey->index hotkey)
-        item (get-in entity [:inventory index])]
+  (let [{{:keys [hotkey]} :next-action,
+         inv :inventory, :as entity} (entities entity-id)
+        index (hotkey->index inv hotkey)
+        item (get inv index)]
     (case (:type item)
       :potion (let [{:keys [max-hp hp]} entity
                     healed (min (potion->hp item) (- max-hp hp))

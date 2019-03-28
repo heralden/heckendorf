@@ -1,7 +1,7 @@
 (ns clj-roguelike.ui
   (:require [clojure.string :as s]
             [dumdom.core :refer [defcomponent]]
-            [clj-roguelike.util :as util]
+            [clj-roguelike.data :refer [inv->pots inv->weps]]
             [clj-roguelike.styles.core :as styled]
             [clj-roguelike.components.dialog :as dialog]))
 
@@ -74,8 +74,11 @@
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog, {:keys [code]} :input} state
         {:keys [hp max-hp exp lvl equipped inventory message floor game-over]} player
-        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game $load-game $input-code]} $m]
+        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game
+                $load-game $input-code]} $m]
+
     [:div
+
      (case dialog
        :intro (dialog/intro $close)
        :copy (dialog/copy-game $close)
@@ -86,26 +89,31 @@
                     :death (dialog/death $new-game $close)
                     nil)
        nil)
+
      [:div
-      (styled/status-bar
-        (if (some? player)
-          (s/join " "
-                  ["HP" (str hp \/ max-hp)
-                   "XP" (int exp)
-                   "LVL" lvl
-                   "EQP" (cond-> equipped
-                                 (map? equipped) item->str)
-                   "FLR" (-> floor inc -)])
-          "LOADING"))
+
+      (if (some? player)
+        [:div
+         (styled/status-bar
+           (s/join " "
+                   ["HP" (str hp \/ max-hp)
+                    "XP" (int exp)
+                    "LVL" lvl
+                    "EQP" (cond-> equipped
+                                  (map? equipped) item->str)
+                    "FLR" (-> floor inc -)]))
+         (styled/status-bar
+           (str "POTIONS " (inv->pots inventory)))
+         (styled/status-bar
+           (str "WEAPONS " (inv->weps inventory)))]
+        "LOADING")
+
       (styled/menu
         (styled/button {:onClick $open-intro} "INTRO")
         (styled/button {:onClick $open-copy} "COPY GAME")
         (styled/button {:onClick $open-load} "LOAD GAME")
         (styled/button {:onClick $open-new} "NEW GAME"))]
-     (when (some? player)
-       (styled/status-bar
-         (str "INV " (->> (map item->str inventory)
-                          (zipmap util/hotkeys)))))
+
      (when (not-empty message)
        (styled/message-log
          (for [[index text] (map-indexed vector (take-last 5 message))]

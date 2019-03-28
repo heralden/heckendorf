@@ -1,15 +1,6 @@
 (ns clj-roguelike.item
-    (:require [clj-roguelike.random :refer [rand-range perc-vec]]))
-
-(def materials
-  {:common {:wood 0.6 :stone 1}
-   :uncommon {:iron 2 :steel 2.2}
-   :rare {:mithril 3.1 :adamant 3.8}
-   :epic {:obsidian 4.5 :abyssal 5.3}})
-
-(def grades
-  "Map of all `materials` to their grades."
-  (apply merge (vals materials)))
+  (:require [clj-roguelike.random :refer [rand-range perc-vec]]
+            [clj-roguelike.data :refer [materials grades]]))
 
 (def weapons
   {:fist       {:att 1 :spd 9}
