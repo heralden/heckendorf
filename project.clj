@@ -31,7 +31,7 @@
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.4"]
-                   [cider/piggieback "0.3.10"]
+                   [cider/piggieback "0.4.0"]
                    [figwheel-sidecar "0.5.16"]
                    [midje "1.9.1"]]
     :source-paths ["src/cljs"]
