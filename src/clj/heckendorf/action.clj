@@ -144,11 +144,15 @@
   [{:keys [entities], :as game} entity-id]
   (let [{{:keys [dir]} :next-action, [y x] :yx, :as entity}
         (entities entity-id)
-        next-yx (case (name dir)
-                  "north" [(dec y) x]
-                  "east"  [y (inc x)]
-                  "south" [(inc y) x]
-                  "west"  [y (dec x)])
+        next-yx (case dir
+                  :north [(dec y) x]
+                  :north-east [(dec y) (inc x)]
+                  :east  [y (inc x)]
+                  :south-east [(inc y) (inc x)]
+                  :south [(inc y) x]
+                  :south-west [(inc y) (dec x)]
+                  :west  [y (dec x)]
+                  :north-west [(dec y) (dec x)])
         target-entity (yx->entity game next-yx)]
     (encounter entity target-entity)))
 

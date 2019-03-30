@@ -3,6 +3,7 @@
 (def hotkeys
   #{"s" "d" "f" "g"
     "c" "v" "b"
+    "h" "j" "k" "l" "n" "m" "i" "o"
     "ArrowLeft" "ArrowRight" "ArrowUp" "ArrowDown"})
 
 (def materials
