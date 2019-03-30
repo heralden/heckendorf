@@ -98,7 +98,7 @@
            (s/join " "
                    ["HP" (str hp \/ max-hp)
                     "XP" (int exp)
-                    "LVL" lvl
+                    "LVL" (inc lvl)
                     "EQP" (cond-> equipped
                                   (map? equipped) item->str)
                     "FLR" (-> floor inc -)]))
