@@ -58,8 +58,12 @@
                     (update :max-stm + 2)
                     (update :message conj "You feel slightly stronger")))))
 
-(defn regain [player]
-  (update player :stm #(min (inc %) (:max-stm player))))
+(defn regain
+  ([player]
+   (regain player false))
+  ([player rest?]
+   (update player :stm #(min (if rest? (+ % 2) (inc %))
+                             (:max-stm player)))))
 
 (defn entity-with [default-m m area entities]
   (let [new-m {:id (new-id)

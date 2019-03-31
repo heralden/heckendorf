@@ -36,7 +36,10 @@
 (let [prev-key (atom nil)
       timeout (atom nil)]
   (defn handle-keys! [e]
-    (when (nil? (:dialog @db))
+    (when (and (nil? (:dialog @db))
+               (not (.-metaKey e))
+               (not (.-ctrlKey e))
+               (not (.-altKey e)))
       (let [rawkey (.-key e)
             keychar (cond-> rawkey (= (count rawkey) 1) .toLowerCase)
             shift? (.-shiftKey e)
@@ -49,6 +52,9 @@
             use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
                               5000
                               set-game!)
+            rest! #(chsk-send! [:game/action {:type :rest}]
+                               5000
+                               set-game!)
             timeout! (fn [action!]
                        (let [prev @prev-key]
                          (reset! prev-key keychar)
@@ -61,6 +67,7 @@
         (when (contains? hotkeys keychar)
           (.preventDefault e)
           (case keychar
+            "r" (rest!)
             "h" (move! :west)
             "j" (move! :south)
             "k" (move! :north)

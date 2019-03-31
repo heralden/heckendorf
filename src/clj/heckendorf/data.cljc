@@ -3,9 +3,11 @@
 (def weapon-keys {"s" 0, "d" 1, "f" 2, "g" 3})
 (def potion-keys {"c" 0, "v" 1, "b" 2})
 (def hotkeys
-  (into #{"h" "j" "k" "l" "n" "m" "i" "o"
+  (into #{"r"
+          "h" "j" "k" "l" "n" "m" "i" "o"
           "ArrowLeft" "ArrowRight" "ArrowUp" "ArrowDown"}
-        (into (keys weapon-keys) (keys potion-keys))))
+        (concat (keys weapon-keys)
+                (keys potion-keys))))
 
 (def materials
   {:common {:wood 0.6 :stone 1}
