@@ -165,10 +165,10 @@
 
 (defmethod gen-entity :monster/dragon [& data]
   (apply entity-with
-         {:hp (rand-range 1000 1100)
-          :att (rand-range 30 34)
-          :spd (rand-range 5 6)
-          :int (rand-range 12 15)
-          :vis (rand-range 9 13)
+         {:hp 1000
+          :att 32
+          :spd 6
+          :int 15
+          :vis 15
           :last-boss? true}
          data))
