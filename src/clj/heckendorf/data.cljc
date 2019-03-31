@@ -39,7 +39,7 @@
          (fn [m k v]
            (assoc m
                   (case k :sword "s" :dagger "d" :mace "f" :greatsword "g")
-                  [k (apply max-key grades (map :grade v))]))
+                  [(apply max-key grades (map :grade v)) k]))
          (sorted-map-by #(< (get weapon-keys %1 -1) (get weapon-keys %2 -1))))))
 
 (defn hotkey->index [inv hotkey]
@@ -49,7 +49,7 @@
                      (some? pot)
                      {:type :potion, :grade (second pot)}
                      (some? wep)
-                     {:type :weapon, :form (first wep), :grade (second wep)})]
+                     {:type :weapon, :form (second wep), :grade (first wep)})]
       (->> (map-indexed vector inv)
            (filter #(= (second %) item))
            first
