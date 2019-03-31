@@ -5,10 +5,11 @@
 
 (defcomponent intro [$close]
   (container
-    (title "WELCOME")
+    (title "INTRO")
     (text "Welcome to the dungeon Heckendorf")
     (text "Use the arrow keys or h j k l n m i o to move")
     (text "Press two arrow keys at the same time for diagonal movement")
+    (text "Hold shift while moving to consume your stamina and dash")
     (text "Press the key assigned to an item in your inventory to use it")
     (text "Find the dragon and slay it")
     (button-group

@@ -1,9 +1,11 @@
 (ns heckendorf.action
     (:require [clojure.string :as s]
-              [heckendorf.entity :refer [simplify-keyword train]]
+              [heckendorf.entity :refer [simplify-keyword train regain]]
               [heckendorf.dungeon :refer [yx->m line-of-sight]]
               [heckendorf.item :refer [dmg-with gen-item potion->hp weapons]]
               [heckendorf.data :refer [hotkey->index]]))
+
+(def ^:const dash-cost 10)
 
 (defn yx->entity
   "Returns the entity occupying the `yx` coordinate in `game`."
@@ -49,22 +51,29 @@
 
 (defmethod encounter [:player :monster]
   [player monster]
-  (let [dmg (vary (dmg-with (:str player)
-                            (:spd monster)
-                            (:equipped player)))
+  (let [dash? (:dash? player)
+        dmg (* (vary (dmg-with (:str player)
+                               (:spd monster)
+                               (:equipped player)))
+               (if dash? 2 1))
         dead? (>= dmg (:hp monster))
         monster-name (->> monster :type name)
-        msg (s/join " "
-                    (cond
-                      dead? ["Killed" monster-name "after dealing" dmg "damage"]
-                      (zero? dmg) [monster-name "dodged your attack"]
-                      :else ["Dealt" dmg "damage to" monster-name]))
+        msg (->> (cond
+                   dead? ["Killed" monster-name "after"
+                          (when dash? "charging and")
+                          "dealing" dmg "damage"]
+                   (zero? dmg) [monster-name "dodged your"
+                                (if dash? "charge" "attack")]
+                   :else [(if dash? "Charged and dealt" "Dealt") dmg "damage to" monster-name])
+                 (filter some?)
+                 (s/join " "))
         new-monster (if dead?
                       {:type :dead, :id (:id monster)}
                       (-> monster
                           (update :hp - dmg)
                           (assoc :attacked? true)))
         new-player (-> player
+                       (dissoc :dash?)
                        (train (if dead? (:hp monster) dmg))
                        (update :message conj msg)
                        (cond-> (and dead? (:last-boss? monster))
@@ -140,6 +149,9 @@
   (fn [game entity-id]
     (some-> game :entities (nth entity-id) :next-action :type)))
 
+(defn monster? [entity]
+  (= (-> entity :type namespace) "monster"))
+
 (defmethod dispatch :walk
   [{:keys [entities], :as game} entity-id]
   (let [{{:keys [dir]} :next-action, [y x] :yx, :as entity}
@@ -154,14 +166,56 @@
                   :west  [y (dec x)]
                   :north-west [(dec y) (dec x)])
         target-entity (yx->entity game next-yx)]
-    (encounter entity target-entity)))
+    (if (monster? target-entity)
+      (encounter entity target-entity)
+      (encounter (regain entity) target-entity))))
+
+(defmethod dispatch :dash
+  [{:keys [entities], :as game} entity-id]
+  (let [{{:keys [dir]} :next-action, [y x] :yx, :as entity}
+        (entities entity-id)
+        next-yx (case dir
+                  :north [(dec y) x]
+                  :north-east [(dec y) (inc x)]
+                  :east  [y (inc x)]
+                  :south-east [(inc y) (inc x)]
+                  :south [(inc y) x]
+                  :south-west [(inc y) (dec x)]
+                  :west  [y (dec x)]
+                  :north-west [(dec y) (dec x)])
+        target-yx (case dir
+                    :north [(- y 2) x]
+                    :north-east [(- y 2) (+ x 2)]
+                    :east  [y (+ x 2)]
+                    :south-east [(+ y 2) (+ x 2)]
+                    :south [(+ y 2) x]
+                    :south-west [(+ y 2) (- x 2)]
+                    :west  [y (- x 2)]
+                    :north-west [(- y 2) (- x 2)])
+        next-entity (yx->entity game next-yx)
+        target-entity (yx->entity game target-yx)
+        exhausted? (< (:stm entity) dash-cost)
+        entity (update entity :stm #(if exhausted? 0 (- % dash-cost)))]
+    (cond
+      exhausted? (encounter
+                   (update entity :message conj "You are exhausted and failed to dash")
+                   next-entity)
+      (and (= (:type next-entity) :empty)
+           (= (:type target-entity) :empty)) (encounter entity target-entity)
+      (and (= (:type next-entity) :empty)) (encounter (-> entity
+                                                          (assoc :yx next-yx)
+                                                          (cond-> (monster? target-entity)
+                                                                  (assoc :dash? true)))
+                                                      target-entity)
+      :else (encounter entity next-entity))))
 
 (defmethod dispatch :use
   [{:keys [entities]} entity-id]
   (let [{{:keys [hotkey]} :next-action,
          inv :inventory, :as entity} (entities entity-id)
         index (hotkey->index inv hotkey)
-        item (get inv index)]
+        item (get inv index)
+        entity (regain entity)]
     (case (:type item)
       :potion (let [{:keys [max-hp hp]} entity
                     healed (min (potion->hp item) (- max-hp hp))

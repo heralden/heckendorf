@@ -73,7 +73,8 @@
 
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog, {:keys [code]} :input} state
-        {:keys [hp max-hp exp lvl equipped inventory message floor game-over]} player
+        {:keys [hp max-hp stm max-stm exp lvl equipped inventory message floor
+                game-over]} player
         {:keys [$close $open-intro $open-copy $open-load $open-new $new-game
                 $load-game $input-code]} $m]
 
@@ -97,6 +98,7 @@
          (styled/status-bar
            (s/join " "
                    ["HP" (str hp \/ max-hp)
+                    "STM" (str stm \/ max-stm)
                     "XP" (int exp)
                     "LVL" (inc lvl)
                     "EQP" (cond-> equipped

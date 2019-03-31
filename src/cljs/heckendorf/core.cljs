@@ -36,50 +36,56 @@
 (let [prev-key (atom nil)
       timeout (atom nil)]
   (defn handle-keys! [e]
-      (when (nil? (:dialog @db))
-        (let [walk! #(chsk-send! [:game/action {:type :walk, :dir %}]
-                                 5000
-                                 set-game!)
-              use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
-                                5000
-                                set-game!)
-              keychar (.-key e)
-              timeout! (fn [action!]
-                         (let [prev @prev-key]
-                           (reset! prev-key keychar)
-                           (js/clearTimeout @timeout)
-                           (reset! timeout
-                                   (js/setTimeout
-                                     #(do (reset! prev-key nil)
-                                          (action! prev))
-                                     50))))]
-          (when (contains? hotkeys keychar)
-            (case keychar
-              "h" (walk! :west)
-              "j" (walk! :south)
-              "k" (walk! :north)
-              "l" (walk! :east)
-              "n" (walk! :south-west)
-              "m" (walk! :south-east)
-              "i" (walk! :north-west)
-              "o" (walk! :north-east)
-              "ArrowLeft"  (timeout! #(condp = %
-                                        "ArrowUp" (walk! :north-west)
-                                        "ArrowDown" (walk! :south-west)
-                                        (walk! :west)))
-              "ArrowRight" (timeout! #(condp = %
-                                        "ArrowUp" (walk! :north-east)
-                                        "ArrowDown" (walk! :south-east)
-                                        (walk! :east)))
-              "ArrowUp"    (timeout! #(condp = %
-                                        "ArrowLeft" (walk! :north-west)
-                                        "ArrowRight" (walk! :north-east)
-                                        (walk! :north)))
-              "ArrowDown"  (timeout! #(condp = %
-                                        "ArrowLeft" (walk! :south-west)
-                                        "ArrowRight" (walk! :south-east)
-                                        (walk! :south)))
-              (use! keychar)))))))
+    (when (nil? (:dialog @db))
+      (let [rawkey (.-key e)
+            keychar (cond-> rawkey (= (count rawkey) 1) .toLowerCase)
+            shift? (.-shiftKey e)
+            move! #(chsk-send! [:game/action {:type (if shift?
+                                                      :dash
+                                                      :walk)
+                                              :dir %}]
+                               5000
+                               set-game!)
+            use! #(chsk-send! [:game/action {:type :use, :hotkey %}]
+                              5000
+                              set-game!)
+            timeout! (fn [action!]
+                       (let [prev @prev-key]
+                         (reset! prev-key keychar)
+                         (js/clearTimeout @timeout)
+                         (reset! timeout
+                                 (js/setTimeout
+                                   #(do (reset! prev-key nil)
+                                        (action! prev))
+                                   50))))]
+        (when (contains? hotkeys keychar)
+          (.preventDefault e)
+          (case keychar
+            "h" (move! :west)
+            "j" (move! :south)
+            "k" (move! :north)
+            "l" (move! :east)
+            "n" (move! :south-west)
+            "m" (move! :south-east)
+            "i" (move! :north-west)
+            "o" (move! :north-east)
+            "ArrowLeft"  (timeout! #(condp = %
+                                      "ArrowUp" (move! :north-west)
+                                      "ArrowDown" (move! :south-west)
+                                      (move! :west)))
+            "ArrowRight" (timeout! #(condp = %
+                                      "ArrowUp" (move! :north-east)
+                                      "ArrowDown" (move! :south-east)
+                                      (move! :east)))
+            "ArrowUp"    (timeout! #(condp = %
+                                      "ArrowLeft" (move! :north-west)
+                                      "ArrowRight" (move! :north-east)
+                                      (move! :north)))
+            "ArrowDown"  (timeout! #(condp = %
+                                      "ArrowLeft" (move! :south-west)
+                                      "ArrowRight" (move! :south-east)
+                                      (move! :south)))
+            (use! keychar)))))))
 
 (defn request-game! []
   (chsk-send! [:game/start]

@@ -55,7 +55,11 @@
       level-up? (-> (update :lvl inc)
                     (update :str + 2)
                     (update :max-hp + 10)
+                    (update :max-stm + 2)
                     (update :message conj "You feel slightly stronger")))))
+
+(defn regain [player]
+  (update player :stm #(min (inc %) (:max-stm player))))
 
 (defn entity-with [default-m m area entities]
   (let [new-m {:id (new-id)
@@ -72,6 +76,8 @@
   (apply entity-with
          {:max-hp 30
           :hp 30
+          :max-stm 10
+          :stm 10
           :str 5
           :spd 10
           :exp 0
