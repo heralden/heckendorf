@@ -88,12 +88,6 @@
 (defmethod gen-entity :stair-up [& data]
   (apply entity-with {} data))
 
-;; Estimated optimal weapons for spd
-;; 1-7: greatsword
-;; 7-11: mace
-;; 11-16: sword
-;; 16+: dagger
-
 ;;;; Explanation of monster stats
 ;; :hp => health points
 ;; :atk => base damage they deal to player

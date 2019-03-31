@@ -2,7 +2,7 @@
     (:require [clojure.string :as s]
               [heckendorf.entity :refer [simplify-keyword train]]
               [heckendorf.dungeon :refer [yx->m line-of-sight]]
-              [heckendorf.item :refer [dmg-with gen-item potion->hp]]
+              [heckendorf.item :refer [dmg-with gen-item potion->hp weapons]]
               [heckendorf.data :refer [hotkey->index]]))
 
 (defn yx->entity
@@ -178,6 +178,7 @@
                     msg (str "You equip a " weapon)]
                 [(-> entity
                      (assoc :equipped item)
+                     (assoc :spd (-> item :form weapons :spd))
                      (update :message conj msg))])
       [entity])))
 

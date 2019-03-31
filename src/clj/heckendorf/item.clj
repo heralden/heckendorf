@@ -3,11 +3,11 @@
             [heckendorf.data :refer [materials grades]]))
 
 (def weapons
-  {:fist       {:att 1 :spd 9}
-   :dagger     {:att 3 :spd 9}
-   :sword      {:att 5 :spd 6}
-   :mace       {:att 8 :spd 4}
-   :greatsword {:att 18 :spd 2}})
+  {:fist       {:att 1 :spd 10}
+   :dagger     {:att 3 :spd 12}
+   :sword      {:att 7 :spd 9}
+   :mace       {:att 8 :spd 8}
+   :greatsword {:att 12 :spd 6}})
 
 (defn- truncate-decimals
   ([x]
@@ -17,14 +17,17 @@
      (float (/ (Math/round (* x multiplier))
                multiplier)))))
 
-(defn- calc-dmg [str-multiplier grade-multiplier enemy-spd wep]
+(defn- calc-dmg
+  "We use the weapon spd to determine the chance of hitting. To calculate the
+  damage, we use the weapon grade, weapon form att and the player's strength."
+  [str-multiplier grade-multiplier enemy-spd wep]
   (let [{:keys [att spd]} wep
-        chance-to-hit (* (/ spd enemy-spd) 2)
+        chance-to-miss (* 4 (/ enemy-spd spd 100))
         final-att (+ (/ att 10) 1)
         dmg (* grade-multiplier str-multiplier final-att)
         jitter (* dmg 0.2)
         real-dmg (+ (* (rand) jitter) (- dmg (/ jitter 2)))]
-    (if (< (rand) chance-to-hit)
+    (if (> (rand) chance-to-miss)
       (truncate-decimals real-dmg)
       0)))
 
