@@ -127,7 +127,7 @@
 (defmethod gen-entity :monster/ghost [& data]
   (apply entity-with
          {:hp (rand-range 25 40)
-          :att (rand-range 8 14)
+          :att (rand-range 9 12)
           :spd (rand-range 10 18)
           :int (rand-range 8 17)
           :vis (rand-range 8 14)
@@ -137,7 +137,7 @@
 (defmethod gen-entity :monster/grim-reaper [& data]
   (apply entity-with
          {:hp (rand-range 60 80)
-          :att (rand-range 18 25)
+          :att (rand-range 13 17)
           :spd (rand-range 8 14)
           :int (rand-range 13 20)
           :vis (rand-range 12 20)
@@ -147,7 +147,7 @@
 (defmethod gen-entity :monster/drake [& data]
   (apply entity-with
          {:hp (rand-range 140 200)
-          :att (rand-range 28 34)
+          :att (rand-range 18 24)
           :spd (rand-range 6 8)
           :int (rand-range 9 13)
           :vis (rand-range 8 12)}
@@ -156,7 +156,7 @@
 (defmethod gen-entity :monster/dragon [& data]
   (apply entity-with
          {:hp (rand-range 1000 1100)
-          :att (rand-range 60 65)
+          :att (rand-range 30 34)
           :spd (rand-range 5 6)
           :int (rand-range 12 15)
           :vis (rand-range 9 13)
