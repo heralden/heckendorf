@@ -67,6 +67,8 @@
     (title "YOU DIED")
     (text "Game over")
     (text "You failed to conquer the monsters of the dungeon")
+    (text "Remember that monsters get stronger as you descend")
+    (text "It would be wise to train on the upper floors")
     (text "You are free to start a new game if you dare")
     (button-group
       (button {:onClick $new-game} "NEW GAME")
