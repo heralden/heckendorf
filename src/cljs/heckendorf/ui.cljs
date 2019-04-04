@@ -48,7 +48,7 @@
 (defn tile->pos [tile]
   (-> tile tile->type type->coord coord->pos))
 
-(defcomponent game-tile [{:keys [tile game-over]} index width]
+(defcomponent game-tile [{:keys [tile seen? game-over]} index width]
   (styled/tile {:key index
                 :type (tile->type tile)
                 :position (case game-over
@@ -56,7 +56,8 @@
                             (tile->pos tile))
                 :size tile-size
                 :bg-size tileset-width
-                :basis (* (/ 1 width) 100)}))
+                :basis (* (/ 1 width) 100)
+                :darkened? seen?}))
 
 (defcomponent game-tiles [{:keys [tiles width]}]
   (styled/area

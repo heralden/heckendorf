@@ -25,12 +25,28 @@
 (defn set-dialog! [kw]
   (swap! db assoc :dialog kw))
 
+;; There's probably a much more efficient way to do this, but I don't want to
+;; optimize something that I might not even include in the final game.
+(defn seen-tiles [prevts newts]
+  (map (fn [prevt newt]
+         (if (and (= (:tile newt) :dark)
+                  (not= (:tile prevt) :dark))
+           (assoc prevt :seen? true)
+           newt))
+       prevts
+       newts))
+
 (defn set-game!
   "game-board can also be a keyword like :game-over, in which case we want to
   set :dialog to this value."
   [game-board]
   (if (map? game-board)
-    (swap! db assoc :game game-board)
+    (swap! db update :game (fn [{old-tiles :tiles :as old-board}]
+                             (if (and (some? old-tiles)
+                                      (apply = (map #(-> % :player :floor)
+                                                    [old-board game-board])))
+                               (update game-board :tiles (partial seen-tiles old-tiles))
+                               game-board)))
     (set-dialog! game-board)))
 
 (let [prev-key (atom nil)

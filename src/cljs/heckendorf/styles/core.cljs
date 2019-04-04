@@ -66,12 +66,14 @@
    :flex-wrap "wrap"
    :width (u/px width)})
 
-(defstyled tile [type position size bg-size basis]
+(defstyled tile [type position size bg-size basis darkened?]
   :div
-  ^{:key type}
+  ^{:key (str type (when darkened? "-seen"))}
   {:width (u/px size)
    :height (u/px size)
    :flex-basis (u/percent basis)
+   :opacity (if darkened? 0.3 1.0)
+   :z-index -1
    :image-rendering #{"-moz-crisp-edges"
                       "-webkit-crisp-edges"
                       "pixelated"
