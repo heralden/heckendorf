@@ -42,11 +42,12 @@
   [game-board]
   (if (map? game-board)
     (swap! db update :game (fn [{old-tiles :tiles :as old-board}]
-                             (if (and (some? old-tiles)
-                                      (apply = (map #(-> % :player :floor)
-                                                    [old-board game-board])))
-                               (update game-board :tiles (partial seen-tiles old-tiles))
-                               game-board)))
+                             (let [same-floor? (apply = (map #(get-in % [:player :floor])
+                                                             [old-board game-board]))
+                                   same-game? (not= (:new-game? game-board) true)]
+                               (if (and same-floor? same-game?)
+                                 (update game-board :tiles (partial seen-tiles old-tiles))
+                                 game-board))))
     (set-dialog! game-board)))
 
 (let [prev-key (atom nil)
@@ -121,7 +122,7 @@
   (chsk-send! [:game/new]
               5000
               (fn [game-board]
-                (set-game! game-board))))
+                (set-game! (assoc game-board :new-game? true)))))
 
 (defmulti -event-msg-handler :id)
 
