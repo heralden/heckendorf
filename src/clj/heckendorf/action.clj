@@ -18,18 +18,26 @@
 (defn vary [x]
   (Math/round (* x (+ (rand) 0.5))))
 
+(defn distance [ayx byx]
+  (let [[ay ax] ayx
+        [by bx] byx]
+    (+ (Math/abs (- ay by))
+       (Math/abs (- ax bx)))))
+
+(defn neighbors [[y x]]
+  [[(dec y) x]         ; north
+   [(dec y) (inc x)]   ; north-east
+   [y (inc x)]         ; east
+   [(inc y) (inc x)]   ; south-east
+   [(inc y) x]         ; south
+   [(inc y) (dec x)]   ; south-west
+   [y (dec x)]         ; west
+   [(dec y) (dec x)]]) ; north-west
+
 (defn random-neighbor
   "Returns the yx vector of a random neighboring coordinate of `yx`."
-  [[y x]]
-  (let [dirs [[(dec y) x]        ; north
-              [(dec y) (inc x)]  ; north-east
-              [y (inc x)]        ; east
-              [(inc y) (inc x)]  ; south-east
-              [(inc y) x]        ; south
-              [(inc y) (dec x)]  ; south-west
-              [y (dec x)]        ; west
-              [(dec y) (dec x)]]]; north-west
-    (rand-nth dirs)))
+  [yx]
+  (rand-nth (neighbors yx)))
 
 (defmulti encounter
   "Dispatches on entity type."
@@ -249,16 +257,34 @@
                            set)]
     (contains? sighted-types :player)))
 
-(defn approach-player [game {:keys [yx] :as entity}]
-  (let [[py px] (:yx (get-in game [:entities 0]))
-        [my mx] yx
-        target-yx (-> yx
-                      (cond-> (> py my) (update 0 inc))
-                      (cond-> (> px mx) (update 1 inc))
-                      (cond-> (< py my) (update 0 dec))
-                      (cond-> (< px mx) (update 1 dec)))
+(defn seen-player? [{:keys [last-seen]}]
+  (some? last-seen))
+
+(defn approach
+  "Returns the yx of the traversable tile that is closest to `target-yx`."
+  [game target-yx entity-yx intangible?]
+  (if-some [next-yx (some->> (neighbors entity-yx)
+                             (map (partial yx->entity game))
+                             (filter #(or intangible? (not= (:type %) :wall)))
+                             (map :yx)
+                             (map #(vector (distance % target-yx) %))
+                             (apply min-key first)
+                             second)]
+    next-yx
+    entity-yx))
+
+(defn approach-last-seen [game {:keys [yx last-seen intangible?] :as entity}]
+  (let [target-yx (approach game last-seen yx intangible?)
+        new-entity (cond-> entity (= target-yx last-seen) (dissoc :last-seen))
         target-entity (yx->entity game target-yx)]
-    (encounter entity target-entity)))
+    (encounter new-entity target-entity)))
+
+(defn approach-player [game {:keys [yx intangible?] :as entity}]
+  (let [player-yx (get-in game [:entities 0 :yx])
+        target-yx (approach game player-yx yx intangible?)
+        new-entity (assoc entity :last-seen player-yx)
+        target-entity (yx->entity game target-yx)]
+    (encounter new-entity target-entity)))
 
 (defn wander [game {:keys [yx] :as entity}]
   (let [random-target-entity (yx->entity game (random-neighbor yx))]
@@ -276,6 +302,7 @@
     :normal ;; Walks randomly, but will chase when player is in sight
     (cond
       (sights-player? game entity) (approach-player game entity)
+      (seen-player? entity) (approach-last-seen game entity)
       :else (wander game entity))
     :esper ;; Always aware of player, and will chase relentlessly
     (approach-player game entity)))
