@@ -140,15 +140,6 @@
   [entity _target]
   [entity])
 
-;; Temporary sketch of actions
-; {:type :move}
-; ;; rest and attack are really subset actions of move (walk would be
-; ;; a more suitable blanket term) that are initiated depending on the
-; ;; target coordinate. It may make sense to integrate them?
-; {:type :rest}
-; {:type :attack}
-; {:type :use} ; using potions or equipping items
-
 (defn remvec [v i]
   (vec (concat (subvec v 0 i)
                (subvec v (inc i)))))
@@ -286,8 +277,11 @@
         target-entity (yx->entity game target-yx)]
     (encounter new-entity target-entity)))
 
-(defn wander [game {:keys [yx] :as entity}]
-  (let [random-target-entity (yx->entity game (random-neighbor yx))]
+(defn wander [game {:keys [yx intangible?] :as entity}]
+  (let [random-target-entity (->> (neighbors yx)
+                                  (map (partial yx->entity game))
+                                  (filter #(or intangible? (not= (:type %) :wall)))
+                                  rand-nth)]
     (encounter entity (rand-nth [random-target-entity entity]))))
 
 (defn behavior [game entity level]
