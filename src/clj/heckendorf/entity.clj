@@ -109,7 +109,7 @@
 
 (defmethod gen-entity :monster/spider [& data]
   (apply entity-with
-         {:hp (rand-range 6 10)
+         {:hp (rand-range 8 12)
           :att (rand-range 1 3)
           :spd (rand-range 12 16)
           :int (rand-range 3 11)
@@ -118,25 +118,25 @@
 
 (defmethod gen-entity :monster/skeleton [& data]
   (apply entity-with
-         {:hp (rand-range 15 25)
+         {:hp (rand-range 20 30)
           :att (rand-range 4 7)
           :spd (rand-range 8 11)
-          :int (rand-range 4 14)
+          :int (rand-range 5 14)
           :vis (rand-range 6 11)}
          data))
 
 (defmethod gen-entity :monster/zombie [& data]
   (apply entity-with
-         {:hp (rand-range 20 30)
-          :att (rand-range 5 12)
+         {:hp (rand-range 30 40)
+          :att (rand-range 5 10)
           :spd (rand-range 5 10)
-          :int (rand-range 3 13)
+          :int (rand-range 5 14)
           :vis (rand-range 3 10)}
          data))
 
 (defmethod gen-entity :monster/ghost [& data]
   (apply entity-with
-         {:hp (rand-range 25 40)
+         {:hp (rand-range 35 40)
           :att (rand-range 9 12)
           :spd (rand-range 10 18)
           :int (rand-range 8 17)
@@ -158,7 +158,7 @@
   (apply entity-with
          {:hp (rand-range 140 200)
           :att (rand-range 18 24)
-          :spd (rand-range 6 8)
+          :spd (rand-range 8 10)
           :int (rand-range 9 13)
           :vis (rand-range 8 12)}
          data))
@@ -167,7 +167,7 @@
   (apply entity-with
          {:hp 1000
           :att 32
-          :spd 6
+          :spd 8
           :int 15
           :vis 15
           :last-boss? true}
