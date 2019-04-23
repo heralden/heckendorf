@@ -102,8 +102,9 @@
                     "STM" (str stm \/ max-stm)
                     "XP" (int exp)
                     "LVL" (inc lvl)
-                    "EQP" (cond-> equipped
-                                  (map? equipped) item->str)
+                    "EQP" (if (= (:form equipped) :fist)
+                            :none
+                            (item->str equipped))
                     "FLR" (-> floor inc -)]))
          (styled/status-bar
            (str "POTIONS " (inv->pots inventory)))

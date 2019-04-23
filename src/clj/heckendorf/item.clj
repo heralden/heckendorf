@@ -3,7 +3,7 @@
             [heckendorf.data :refer [materials grades]]))
 
 (def weapons
-  {:fist       {:att 1 :spd 10}
+  {:fist       {:att 1 :spd 10} ; Special "weapon" that you only start with.
    :dagger     {:att 3 :spd 12}
    :sword      {:att 7 :spd 9}
    :mace       {:att 8 :spd 8}
@@ -33,13 +33,11 @@
 
 (defn dmg-with
   "Calculates damage using strength, speed of enemy and weapon item."
-  [strength enemy-spd {:keys [form grade] :as wep}]
+  [strength enemy-spd {:keys [form grade]}]
   (let [str-multiplier (+ (/ strength 10) 1)
         grade-multiplier (get grades grade)
         weapon (get weapons form)]
-    (if (= wep :none)
-      (calc-dmg str-multiplier 1 enemy-spd (get weapons :fist))
-      (calc-dmg str-multiplier grade-multiplier enemy-spd weapon))))
+    (calc-dmg str-multiplier grade-multiplier enemy-spd weapon)))
 
 (def potion
   {:minor #(rand-range 20 30)

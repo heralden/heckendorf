@@ -83,11 +83,12 @@
           :max-stm 10
           :stm 10
           :str 5
-          :spd 10
+          :spd 10 ; This speed is only used when the player is `unencumbered?`.
+                  ; Otherwise, the speed of the equipped weapon is used.
           :exp 0
           :lvl 0
           :inventory []
-          :equipped :none
+          :equipped {:type :weapon, :form :fist, :grade :stone}
           :message []
           :floor 0}
          data))

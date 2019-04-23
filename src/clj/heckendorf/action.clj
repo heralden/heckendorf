@@ -224,6 +224,7 @@
                 [(-> entity
                      (update :hp + healed)
                      (update :inventory remvec index)
+                     (assoc :unencumbered? true)
                      (update :message conj msg))])
       :weapon (let [weapon (->> ((juxt :grade :form) item)
                                 (map name)
@@ -231,7 +232,6 @@
                     msg (str "You equip a " weapon)]
                 [(-> entity
                      (assoc :equipped item)
-                     (assoc :spd (-> item :form weapons :spd))
                      (update :message conj msg))])
       [entity])))
 
@@ -348,9 +348,15 @@
   (boolean (:ticks entity)))
 
 (defn- reset-ticks
-  "Sets the initial remaining ticks to an `entity` depending on its spd key."
+  "Sets the initial remaining ticks to an `entity`."
   [entity]
-  (assoc entity :ticks (ticks-per-action (:spd entity))))
+  (let [spd (if (and (= (:type entity) :player)
+                     (not (:unencumbered? entity)))
+              (-> entity :equipped :form weapons :spd)
+              (:spd entity))]
+    (-> entity
+        (cond-> (:unencumbered? entity) (dissoc :unencumbered?))
+        (assoc :ticks (ticks-per-action spd)))))
 
 (defn- tick
   "Initiates a single tick to `entity`, resetting it once it goes below zero."
