@@ -74,6 +74,8 @@
 
 (defmethod -event-msg-handler :chsk/uidport-open [_] nil)
 
+(defmethod -event-msg-handler :chsk/uidport-close [_] nil)
+
 (defmethod -event-msg-handler :game/start
   [{:keys [?reply-fn client-id]}]
   (?reply-fn (get-game client-id)))
