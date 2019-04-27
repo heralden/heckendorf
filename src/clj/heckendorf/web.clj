@@ -58,6 +58,10 @@
     (when ?reply-fn
       (?reply-fn {:umatched-event-as-echoed-from-from-server event}))))
 
+(defmethod -event-msg-handler :chsk/ws-ping [_] nil)
+
+(defmethod -event-msg-handler :chsk/uidport-open [_] nil)
+
 (defmethod -event-msg-handler :game/start
   [{:keys [?reply-fn client-id]}]
   (?reply-fn (get-game client-id)))

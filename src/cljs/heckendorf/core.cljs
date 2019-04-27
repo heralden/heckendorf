@@ -141,6 +141,8 @@
       (set-uid! uid)
       (request-game!))))
 
+(defmethod -event-msg-handler :chsk/handshake [_] nil)
+
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-f @router_] (stop-f)))
 (defn start-router! []
