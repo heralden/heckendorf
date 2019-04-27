@@ -57,3 +57,14 @@
            first
            first)
       nil)))
+
+(defn bounded-conj [bounded-vector x]
+  "Drops the oldest element in bounded-vector when length is more than or equal
+  to limit key specified in metadata. Defaults to a limit of 10 when metadata
+  is missing."
+  (let [{:keys [limit] :as m} (meta bounded-vector)]
+    (conj (cond-> bounded-vector
+                  (>= (count bounded-vector) (or limit 10))
+                  (-> (subvec 1)
+                      (with-meta (or m {:limit 10}))))
+          x)))

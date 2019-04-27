@@ -1,6 +1,7 @@
 (ns heckendorf.entity
     (:require [heckendorf.random :refer [rand-range]]
-              [heckendorf.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]))
+              [heckendorf.dungeon :refer [rand-coord-tile neighboring-tiles edge-tile? yx->i]]
+              [heckendorf.data :refer [bounded-conj]]))
 
 (let [i (atom -1)]
   (defn- new-id
@@ -56,7 +57,7 @@
                     (update :str + 2)
                     (update :max-hp + 10)
                     (update :max-stm + 2)
-                    (update :message conj "You feel slightly stronger")))))
+                    (update :message bounded-conj "You feel slightly stronger")))))
 
 (defn regain
   ([player]
@@ -89,7 +90,7 @@
           :lvl 0
           :inventory []
           :equipped {:type :weapon, :form :fist, :grade :stone}
-          :message []
+          :message (with-meta [] {:limit 10}) ; For use with `bounded-conj`.
           :floor 0
           :actions 0}
          data))

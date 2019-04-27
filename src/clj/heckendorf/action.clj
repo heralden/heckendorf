@@ -3,7 +3,7 @@
               [heckendorf.entity :refer [simplify-keyword train regain]]
               [heckendorf.dungeon :refer [yx->m line-of-sight]]
               [heckendorf.item :refer [dmg-with gen-item potion->hp weapons]]
-              [heckendorf.data :refer [hotkey->index]]))
+              [heckendorf.data :refer [hotkey->index bounded-conj]]))
 
 (def ^:const dash-cost 10)
 
@@ -83,7 +83,7 @@
         new-player (-> player
                        (dissoc :dash?)
                        (train (if dead? (:hp monster) dmg))
-                       (update :message conj msg)
+                       (update :message bounded-conj msg)
                        (cond-> (and dead? (:last-boss? monster))
                                (assoc :game-over :victory)))]
     [new-player new-monster]))
@@ -129,11 +129,11 @@
         new-player (if dead?
                      (-> player
                          (assoc :hp 0)
-                         (update :message conj msg)
+                         (update :message bounded-conj msg)
                          (assoc :game-over :death))
                      (-> player
                          (update :hp - dmg)
-                         (update :message conj msg)))]
+                         (update :message bounded-conj msg)))]
     [monster new-player]))
 
 (defmethod encounter :default
@@ -197,7 +197,7 @@
         entity (update entity :stm #(if exhausted? 0 (- % dash-cost)))]
     (cond
       exhausted? (encounter
-                   (update entity :message conj "You are exhausted and failed to dash")
+                   (update entity :message bounded-conj "You are exhausted and failed to dash")
                    next-entity)
       (and (= (:type next-entity) :empty)
            (= (:type target-entity) :empty)) (encounter entity target-entity)
@@ -225,14 +225,14 @@
                      (update :hp + healed)
                      (update :inventory remvec index)
                      (assoc :unencumbered? true)
-                     (update :message conj msg))])
+                     (update :message bounded-conj msg))])
       :weapon (let [weapon (->> ((juxt :grade :form) item)
                                 (map name)
                                 (s/join " "))
                     msg (str "You equip a " weapon)]
                 [(-> entity
                      (assoc :equipped item)
-                     (update :message conj msg))])
+                     (update :message bounded-conj msg))])
       [entity])))
 
 (defmethod dispatch :rest
