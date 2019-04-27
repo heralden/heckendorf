@@ -1,4 +1,9 @@
 (defproject heckendorf "0.1.0-SNAPSHOT"
+  :description "Roguelike dungeon crawler game with fullstack Clojure"
+  :url "https://github.com/uosl/heckendorf"
+  :license {:name "Eclipse Public License"
+            :url  "http://www.eclipse.org/legal/epl-v10.html"
+            :distribution :repo}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.10.516"]
                  [http-kit "2.3.0"]
@@ -25,7 +30,7 @@
 
   :figwheel {:css-dirs ["resources/public/css"]}
 
-  :aliases {"start" ["do" ["cljsbuild" "once" "dev"] "run"]}
+  :aliases {"start" ["do" "clean," "cljsbuild" "once" "dev," "run"]}
   ;; For a developer environment, you'll want to open two terminals with
   ;; `lein repl` (then run `(-main)`) and `lein figwheel dev`.
 
