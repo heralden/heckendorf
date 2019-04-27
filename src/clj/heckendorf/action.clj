@@ -237,9 +237,9 @@
 
 (defmethod dispatch :rest
   [{:keys [entities]} entity-id]
-  (let [rested-player (-> (entities entity-id)
-                          (regain true))]
-    [rested-player]))
+  [(-> (entities entity-id)
+       (regain true)
+       (assoc :unencumbered? true))])
 
 (defn sights-player? [game {:keys [vis yx]}]
   (let [sighted-types (->> (line-of-sight (:area game) vis yx)
