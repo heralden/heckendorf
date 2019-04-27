@@ -75,7 +75,7 @@
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog, {:keys [code]} :input} state
         {:keys [hp max-hp stm max-stm exp lvl equipped inventory message floor
-                game-over]} player
+                game-over actions]} player
         {:keys [$close $open-intro $open-copy $open-load $open-new $new-game
                 $load-game $input-code]} $m]
 
@@ -87,8 +87,8 @@
        :load (dialog/load-game code $input-code $load-game $close)
        :new (dialog/new-game $new-game $close)
        :game-over (case game-over
-                    :victory (dialog/victory $new-game $close)
-                    :death (dialog/death $new-game $close)
+                    :victory (dialog/victory actions $new-game $close)
+                    :death (dialog/death actions $new-game $close)
                     nil)
        nil)
 

@@ -128,6 +128,7 @@
   (let [prev-game (get @game-atom client-id)
         next-game (-> prev-game
                       (assoc-in [:entities entity-id :next-action] action)
+                      (update-in [:entities entity-id :actions] inc)
                       effect-entities)
         [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
                                      [prev-game

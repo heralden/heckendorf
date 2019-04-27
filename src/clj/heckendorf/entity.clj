@@ -90,7 +90,8 @@
           :inventory []
           :equipped {:type :weapon, :form :fist, :grade :stone}
           :message []
-          :floor 0}
+          :floor 0
+          :actions 0}
          data))
 
 (defmethod gen-entity :stair-down [& data]

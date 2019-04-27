@@ -54,21 +54,23 @@
         (button "SUBMIT")
         (button {:onClick $close} "CLOSE"))))
 
-(defcomponent victory [$new-game $close]
+(defcomponent victory [actions $new-game $close]
   (container
     (title "YOU WON")
     (text "Well done")
     (text "You defeated the dragon and won the game")
     (text "You have earned the respect of #treasureisland")
+    (text (str "You spent " actions " actions in this game"))
     (button-group
       (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
 
-(defcomponent death [$new-game $close]
+(defcomponent death [actions $new-game $close]
   (container
     (title "YOU DIED")
     (text "Game over")
     (text "You failed to conquer the monsters of the dungeon")
+    (text (str "You spent " actions " actions in this game"))
     (text "Remember that monsters get stronger as you descend")
     (text "It would be wise to train on the upper floors")
     (text "You are free to start a new game if you dare")
