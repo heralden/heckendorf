@@ -1,6 +1,8 @@
 (ns heckendorf.web
     (:require [org.httpkit.server :as http-kit]
               [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
+              [hiccup.core :as hiccup]
+              [hiccup.element :refer [javascript-tag]]
               [ring.middleware.defaults]
               [ring.middleware.anti-forgery :as anti-forgery]
               [compojure.core :as comp :refer (defroutes GET POST)]
@@ -15,8 +17,7 @@
       chsk-server (sente/make-channel-socket-server!
                     (get-sch-adapter) {:packer packer
                                        :user-id-fn (fn [ring-req]
-                                                     (:client-id ring-req))
-                                       :csrf-token-fn nil})
+                                                     (:client-id ring-req))})
       {:keys [ch-recv send-fn connected-uids
               ajax-post-fn ajax-get-or-ws-handshake-fn]}
       chsk-server]
@@ -27,7 +28,16 @@
   (def connected-uids connected-uids))
 
 (defn landing-pg-handler [ring-req]
-  (->> "public/index.html" io/resource slurp))
+  (hiccup/html
+    [:html {:lang "en"}
+     [:head
+      [:meta {:charset "utf-8"}]]
+     [:body
+      [:div#sente-csrf-token
+       {:data-csrf-token (force anti-forgery/*anti-forgery-token*)}]
+      [:div#app]
+      [:script {:src "js/compiled/app.js"}]
+      (javascript-tag "heckendorf.core.init();")]]))
 
 (defroutes ring-routes
   (GET "/" ring-req (landing-pg-handler ring-req))
@@ -38,7 +48,9 @@
 
 (def main-ring-handler
   (ring.middleware.defaults/wrap-defaults
-    ring-routes ring.middleware.defaults/site-defaults))
+    ring-routes
+    ;; Workaround for client not receiving CSRF token in HTML on page load.
+    (dissoc ring.middleware.defaults/site-defaults :static)))
 
 (defmulti -event-msg-handler
   "Multimethod to handle Sente `event-msg`s"

@@ -15,8 +15,12 @@
       (assoc opts :client-id uid)
       opts)))
 
+(def csrf-token
+  (when-let [el (.getElementById js/document "sente-csrf-token")]
+    (.getAttribute el "data-csrf-token")))
+
 (defonce socket
-  (sente/make-channel-socket-client! "/chsk" nil (with-uid {:type :auto})))
+  (sente/make-channel-socket-client! "/chsk" csrf-token (with-uid {:type :auto})))
 (def chsk-send! (:send-fn socket))
 
 (defn set-input! [k v]
