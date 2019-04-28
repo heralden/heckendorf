@@ -59,8 +59,8 @@
     (title "YOU WON")
     (text "Well done")
     (text "You defeated the dragon and won the game")
-    (text "You have earned the respect of #treasureisland")
     (text (str "You spent " actions " actions in this game"))
+    (text "You have earned the respect of #treasureisland")
     (button-group
       (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
@@ -71,7 +71,8 @@
    "Dashing into monsters from a distance will do more damage"
    "Heavier weapon forms will make you move and attack slower"
    "Dealing damage will help you level up making you stronger"
-   "Dashing without enough stamina will make you exhausted"])
+   "Dashing without enough stamina will make you exhausted"
+   "Potions will not heal you above your max hitpoints"])
 
 (defcomponent death [actions $new-game $close]
   (container

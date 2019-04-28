@@ -115,7 +115,7 @@
          {:hp (rand-range 8 12)
           :att (rand-range 1 3)
           :spd (rand-range 12 16)
-          :int (rand-range 3 11)
+          :int (rand-range 4 12)
           :vis (rand-range 3 7)}
          data))
 
