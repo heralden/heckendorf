@@ -65,15 +65,22 @@
       (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
 
+(def hints
+  ["Monsters get stronger as you descend but treasures get better"
+   "You can go back up a floor to get more monsters to train on"
+   "Dashing into monsters from a distance will do more damage"
+   "Heavier weapon forms will make you move and attack slower"
+   "Dealing damage will help you level up making you stronger"
+   "Dashing without enough stamina will make you exhausted"])
+
 (defcomponent death [actions $new-game $close]
   (container
     (title "YOU DIED")
     (text "Game over")
     (text "You failed to conquer the monsters of the dungeon")
     (text (str "You spent " actions " actions in this game"))
-    (text "Remember that monsters get stronger as you descend")
-    (text "It would be wise to train on the upper floors")
-    (text "You are free to start a new game if you dare")
+    (text "HINT")
+    (text (rand-nth hints))
     (button-group
       (button {:onClick $new-game} "NEW GAME")
       (button {:onClick $close} "CLOSE"))))
