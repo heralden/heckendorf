@@ -117,7 +117,7 @@
 (defn new-game [client-id]
   (let [game (create-game 0 floors nil)]
     (swap! game-atom assoc client-id game)
-    (prepare-game game)))
+    (assoc (prepare-game game) :new-game? true)))
 
 (defn get-game [client-id]
   (if (contains? @game-atom client-id)
@@ -125,20 +125,21 @@
     (new-game client-id)))
 
 (defn update-game [client-id entity-id action]
-  (let [prev-game (get @game-atom client-id)
-        next-game (-> prev-game
-                      (assoc-in [:entities entity-id :next-action] action)
-                      (update-in [:entities entity-id :actions] inc)
-                      effect-entities)
-        [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
-                                     [prev-game
-                                      next-game])
-        game-over? (some? (get-in prev-game [:entities 0 :game-over]))]
-    (cond game-over? :game-over
-          (= prev-floor next-floor) (do (swap! game-atom assoc client-id next-game)
-                                      (prepare-game next-game))
-          :else
-          (let [player (get-in next-game [:entities 0])
-                new-game (create-game next-floor floors player)]
-            (swap! game-atom assoc client-id new-game)
-            (prepare-game new-game)))))
+  (if-let [prev-game (get @game-atom client-id)]
+    (let [next-game (-> prev-game
+                        (assoc-in [:entities entity-id :next-action] action)
+                        (update-in [:entities entity-id :actions] inc)
+                        effect-entities)
+          [prev-floor next-floor] (map #(get-in % [:entities 0 :floor])
+                                       [prev-game
+                                        next-game])
+          game-over? (some? (get-in prev-game [:entities 0 :game-over]))]
+      (cond game-over? :game-over
+            (= prev-floor next-floor) (do (swap! game-atom assoc client-id next-game)
+                                        (prepare-game next-game))
+            :else
+            (let [player (get-in next-game [:entities 0])
+                  new-game (create-game next-floor floors player)]
+              (swap! game-atom assoc client-id new-game)
+              (prepare-game new-game))))
+    (new-game client-id)))

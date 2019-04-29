@@ -124,7 +124,7 @@
   (chsk-send! [:game/new]
               5000
               (fn [game-board]
-                (set-game! (assoc game-board :new-game? true)))))
+                (set-game! game-board))))
 
 (defmulti -event-msg-handler :id)
 
