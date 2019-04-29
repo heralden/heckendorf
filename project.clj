@@ -48,8 +48,11 @@
    :uberjar
    {:prep-tasks ["compile" ["cljsbuild" "once" "min"]]
     :aot :all}}
-   ;; Note: When using openjdk-9 you might need to add flags
-   ;; `java --add-modules java.xml.bind -jar my-uberjar.jar`
+   ;; # Useful flags to add when calling java with the uberjar
+   ;; - Fix when using openjdk-9
+   ;;   `--add-modules java.xml.bind`
+   ;; - Serve a socket-based REPL that you can telnet into
+   ;;   `-Dclojure.server.repl="{:port 5555 :accept clojure.core.server/repl}"`
 
   :cljsbuild
   {:builds

@@ -221,13 +221,13 @@
       dung
       (recur w h room-attempts))))
 
-(defn pretty-print [area]
-  (->> (map :tile (:tiles area))
-       (map #(cond (= % :wall)  :#
-                   (= % :empty) :.
-                   (= % :dark)  :X))
-       (partition (:width area))
-       clojure.pprint/pprint))
+#_(defn pretty-print [area]
+    (->> (map :tile (:tiles area))
+         (map #(cond (= % :wall)  :#
+                     (= % :empty) :.
+                     (= % :dark)  :X))
+         (partition (:width area))
+         clojure.pprint/pprint))
 
 (defn rand-coord-tile [tile area]
   (let [i (rand-int (* (:width area) (:height area)))]

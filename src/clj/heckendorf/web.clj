@@ -1,4 +1,5 @@
 (ns heckendorf.web
+    (:gen-class)
     (:require [org.httpkit.server :as http-kit]
               [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
               [hiccup.core :as hiccup]
