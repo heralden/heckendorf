@@ -34,6 +34,10 @@
    [y (dec x)]         ; west
    [(dec y) (dec x)]]) ; north-west
 
+(defn neighbors? [yx1 yx2]
+  (boolean (some #(= yx1 %)
+                 (neighbors yx2))))
+
 (defn random-neighbor
   "Returns the yx vector of a random neighboring coordinate of `yx`."
   [yx]
@@ -201,11 +205,11 @@
                    next-entity)
       (and (= (:type next-entity) :empty)
            (= (:type target-entity) :empty)) (encounter entity target-entity)
-      (and (= (:type next-entity) :empty)) (encounter (-> entity
-                                                          (assoc :yx next-yx)
-                                                          (cond-> (monster? target-entity)
-                                                                  (assoc :dash? true)))
-                                                      target-entity)
+      (= (:type next-entity) :empty) (encounter (-> entity
+                                                    (assoc :yx next-yx)
+                                                    (cond-> (monster? target-entity)
+                                                            (assoc :dash? true)))
+                                                target-entity)
       :else (encounter entity next-entity))))
 
 (defmethod dispatch :use
@@ -264,18 +268,36 @@
     next-yx
     entity-yx))
 
+(defn flight-approach
+  "Returns the yx of the closest 'flyable' traversable tile to `target-yx`."
+  [game target-yx entity-yx]
+  (if-some [next-yx (some->> (neighbors target-yx)
+                             (map (partial yx->entity game))
+                             (filter #(not= (:type %) :wall))
+                             (map :yx)
+                             (map #(vector (distance % entity-yx) %))
+                             (apply min-key first)
+                             second)]
+           next-yx
+           entity-yx))
+
 (defn approach-last-seen [game {:keys [yx last-seen intangible?] :as entity}]
   (let [target-yx (approach game last-seen yx intangible?)
         new-entity (cond-> entity (= target-yx last-seen) (dissoc :last-seen))
         target-entity (yx->entity game target-yx)]
     (encounter new-entity target-entity)))
 
-(defn approach-player [game {:keys [yx intangible?] :as entity}]
-  (let [player-yx (get-in game [:entities 0 :yx])
-        target-yx (approach game player-yx yx intangible?)
-        new-entity (assoc entity :last-seen player-yx)
-        target-entity (yx->entity game target-yx)]
-    (encounter new-entity target-entity)))
+(defn approach-player [game {:keys [intangible? last-boss?], eyx :yx :as e}]
+  (let [{pyx :yx, :as p} (get-in game [:entities 0])
+        tyx (if last-boss?
+              (flight-approach game pyx eyx)
+              (approach game pyx eyx intangible?))
+        n (assoc e :last-seen pyx)
+        t (yx->entity game tyx)]
+    (cond
+      (neighbors? eyx pyx) (encounter n p)
+      last-boss? (encounter (assoc n :yx tyx) p)
+      :else (encounter n t))))
 
 (defn wander [game {:keys [yx intangible?] :as entity}]
   (let [random-target-entity (->> (neighbors yx)
@@ -299,20 +321,27 @@
       (seen-player? entity) (approach-last-seen game entity)
       :else (wander game entity))
     :esper ;; Always aware of player, and will chase relentlessly
-    (approach-player game entity)))
+    (approach-player game entity)
+    :boss ;; Walks randomly, but will charge and chase when player is in sight
+    (cond
+      (sights-player? game entity) (approach-player game entity)
+      (seen-player? entity) (approach-last-seen game entity)
+      :else (wander game entity))))
 
 ;; This is the default method for non-player `tickable-entities`. Doesn't apply
 ;; to `player` as the game-loop only runs when their :next-action is defined.
 (defmethod dispatch :default
   [{:keys [entities], :as game} entity-id]
-  (let [entity (entities entity-id)
+  (let [{:keys [int last-boss?], :as entity} (entities entity-id)
         behave (partial behavior game entity)]
-    (condp >= (:int entity)
-           5 (behave :dumb)
-           10 (behave :aware)
-           15 (behave :normal)
-           20 (behave :esper)
-           (behave :dumb))))
+    (if last-boss?
+      (behave :boss)
+      (condp >= int
+             5 (behave :dumb)
+             10 (behave :aware)
+             15 (behave :normal)
+             20 (behave :esper)
+             (behave :dumb)))))
 
 ;;;; Entity ticks for initiating actions/events
 

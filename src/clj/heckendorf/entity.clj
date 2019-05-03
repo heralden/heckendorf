@@ -170,7 +170,7 @@
   (apply entity-with
          {:hp 1000
           :att 32
-          :spd 8
+          :spd 6
           :int 15
           :vis 15
           :last-boss? true}

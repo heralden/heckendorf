@@ -322,8 +322,9 @@
 
 (defn copy-tile-idx [from-area to-area idx]
   "Copy a tile at index from one area to another"
-  (let [tile (i->m idx from-area)]
-    (apply-tile-idx tile to-area idx)))
+  (if-let [tile (i->m idx from-area)]
+    (apply-tile-idx tile to-area idx)
+    to-area))
 
 (defn darken-other-idxs [area los-idxs]
   "Create a new area with all tiles except los-idxs replaced by :dark tiles"
