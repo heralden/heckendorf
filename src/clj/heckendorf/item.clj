@@ -79,7 +79,7 @@
   (perc-vec [[80 #(rand-potion :lesser)]
              [60 #(rand-potion :greater)]
              [70 #(rand-potion :minor)]
-             [60 #(rand-weapon :rare)]]))
+             [70 #(rand-weapon :rare)]]))
 
 (defmethod gen-item :chest/epic [_]
   (perc-vec [[80 #(rand-potion :greater)]
