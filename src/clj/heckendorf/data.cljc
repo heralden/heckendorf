@@ -3,8 +3,19 @@
 (def weapon-keys {"s" 0, "d" 1, "f" 2, "g" 3})
 (def potion-keys {"c" 0, "v" 1, "b" 2})
 (def hotkeys
-  (into #{"r"
+  (into #{; rest
+          "r"
+          ; movement with vim bindings
           "h" "j" "k" "l" "n" "m" "i" "o"
+          ; diagonal movement and rest with numpad
+          "Home" "PageUp"
+          "Clear"
+          "End" "PageDown"
+          ; movement and rest with numpad (numlock active)
+          "7" "8" "9"
+          "4" "5" "6"
+          "1" "2" "3"
+          ; arrow keys
           "ArrowLeft" "ArrowRight" "ArrowUp" "ArrowDown"}
         (concat (keys weapon-keys)
                 (keys potion-keys))))

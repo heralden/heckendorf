@@ -7,7 +7,7 @@
   (container
     (title "INTRO")
     (text "Welcome to the dungeon Heckendorf")
-    (text "Use the arrow keys or h j k l n m i o to move")
+    (text "Use the arrow or numpad keys or h j k l n m i o to move")
     (text "Press two arrow keys at the same time for diagonal movement")
     (text "Hold shift while moving to consume your stamina and dash")
     (text "Press R to rest in place and regain stamina faster")

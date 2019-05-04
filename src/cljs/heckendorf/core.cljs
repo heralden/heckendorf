@@ -86,7 +86,9 @@
         (when (contains? hotkeys keychar)
           (.preventDefault e)
           (case keychar
+            ; rest
             "r" (rest!)
+            ; movement with vim bindings
             "h" (move! :west)
             "j" (move! :south)
             "k" (move! :north)
@@ -95,6 +97,17 @@
             "m" (move! :south-east)
             "i" (move! :north-west)
             "o" (move! :north-east)
+            ; diagonal movement and rest with numpad
+            "Home"     (move! :north-west)
+            "PageUp"   (move! :north-east)
+            "Clear"    (rest!)
+            "End"      (move! :south-west)
+            "PageDown" (move! :south-east)
+            ; movement and rest with numpad (numlock active)
+            "7" (move! :north-west) "8" (move! :north) "9" (move! :north-east)
+            "4" (move! :west)       "5" (rest!)        "6" (move! :east)
+            "1" (move! :south-west) "2" (move! :south) "3" (move! :south-east)
+            ; arrow keys
             "ArrowLeft"  (timeout! #(condp = %
                                       "ArrowUp" (move! :north-west)
                                       "ArrowDown" (move! :south-west)
