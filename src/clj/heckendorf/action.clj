@@ -122,7 +122,9 @@
 
 (defmethod encounter [:monster :player]
   [monster player]
-  (let [dmg (vary (get monster :att))
+  (let [dmg (if (> (rand) 0.1)
+              (vary (get monster :att))
+              0)
         dead? (>= dmg (:hp player))
         monster-name (->> monster :type name)
         msg (s/join " "
