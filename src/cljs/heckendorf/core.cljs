@@ -3,7 +3,7 @@
   (:require [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente :as sente :refer (cb-success?)]
             [dumdom.core :as dumdom]
-            [heckendorf.data :refer [hotkeys]]
+            [heckendorf.data :refer [hotkeys hotkey->index]]
             [heckendorf.util :refer [action get-uid set-uid!]]
             [heckendorf.ui :refer [main-panel]]))
 
@@ -124,7 +124,8 @@
                                       "ArrowLeft" (move! :south-west)
                                       "ArrowRight" (move! :south-east)
                                       (move! :south)))
-            (use! keychar)))))))
+            (when (hotkey->index (get-in @db [:game :player :inventory]) keychar)
+              (use! keychar))))))))
 
 (defn request-game! []
   (chsk-send! [:game/start]
