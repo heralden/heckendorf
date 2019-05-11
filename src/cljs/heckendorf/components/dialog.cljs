@@ -1,7 +1,7 @@
 (ns heckendorf.components.dialog
   (:require [dumdom.core :refer [defcomponent]]
             [heckendorf.util :refer [get-uid]]
-            [heckendorf.styles.dialog :refer [container title text button-group button input]]))
+            [heckendorf.styles.dialog :refer [container title text small-text text-group text-part button-group button input]]))
 
 (defcomponent intro [$close]
   (container
@@ -43,27 +43,35 @@
       (button {:onClick $new-game} "YES")
       (button {:onClick $close} "NO"))))
 
-#_(defcomponent victory [$close]
-    (container
-      (title "YOU WON")
-      (text "Well done")
-      (text "You defeated the dragon and won the game")
-      (text "Enter your name below to submit your score to the leaderboard")
-      (input {:type "text"})
-      (button-group
-        (button "SUBMIT")
-        (button {:onClick $close} "CLOSE"))))
-
-(defcomponent victory [actions $new-game $close]
+(defcomponent victory [{:keys [name actions res]} $input-name $submit-name $close]
   (container
     (title "YOU WON")
     (text "Well done")
     (text "You defeated the dragon and won the game")
-    (text (str "You spent " actions " actions in this game"))
     (text "You have earned the respect of #treasureisland")
+    (text (str "You spent " actions " actions in this game"))
+    (text "Enter your name below to submit your score to the leaderboard")
+    (input {:type "text", :value name, :onChange $input-name})
+    (when (some? res) (text res))
     (button-group
-      (button {:onClick $new-game} "NEW GAME")
+      (button {:onClick $submit-name} "SUBMIT")
       (button {:onClick $close} "CLOSE"))))
+
+(defcomponent leaderboard [{:keys [res leaders]} $close-res]
+  (container
+    (title "LEADERBOARD")
+    (when (some? res) (text res))
+    (if (empty? leaders)
+      [:div
+       (text "The leaderboard is empty")
+       (text "Perhaps you should change that")]
+      (text-group
+        (for [part (partition 20 leaders)]
+          (text-part
+            (for [score part]
+              (small-text (prn-str score)))))))
+    (button-group
+      (button {:onClick $close-res} "CLOSE"))))
 
 (def hints
   ["Monsters get stronger as you descend but treasures get better"

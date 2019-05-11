@@ -29,12 +29,30 @@
    :text-transform 'uppercase
    :color "white"})
 
+(defstyled small-text []
+  :p
+  {:margin-top (u/px 2)
+   :margin-bottom (u/px 2)
+   :font (assoc retro-font :size (u/px 14))
+   :text-transform 'uppercase
+   :white-space 'nowrap
+   :color "white"})
+
 (defstyled input []
   :input
   {:font retro-font
    :border retro-border
    :width (u/percent 100)
    :box-sizing 'border-box})
+
+(defstyled text-group []
+  :div
+  {:display 'flex
+   :justify-content 'center})
+
+(defstyled text-part []
+  :div
+  {:margin (u/px 10)})
 
 (defstyled button-group []
   :div

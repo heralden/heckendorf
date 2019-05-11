@@ -114,6 +114,13 @@
 
 (defonce game-atom (atom {}))
 
+(defn get-game-actions [client-id]
+  (get-in @game-atom [client-id :entities 0 :actions]))
+
+(defn won-game? [client-id]
+  (= (get-in @game-atom [client-id :entities 0 :game-over])
+     :victory))
+
 (defn new-game [client-id]
   (let [game (create-game 0 floors nil)]
     (swap! game-atom assoc client-id game)

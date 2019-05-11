@@ -73,11 +73,12 @@
     :potion ((juxt :grade :type) item)))
 
 (defcomponent game-interface [state $m]
-  (let [{{:keys [player]} :game, dialog :dialog, {:keys [code]} :input} state
+  (let [{{:keys [player]} :game, dialog :dialog, leaders :leaderboard,
+         {:keys [code name]} :input, res :res} state
         {:keys [hp max-hp stm max-stm exp lvl equipped inventory message floor
                 game-over actions]} player
-        {:keys [$close $open-intro $open-copy $open-load $open-new $new-game
-                $load-game $input-code]} $m]
+        {:keys [$close $open-intro $open-copy $open-load $open-new $open-leaderboard
+                $new-game $load-game $submit-name $input-code $input-name]} $m]
 
     [:div
 
@@ -86,8 +87,16 @@
        :copy (dialog/copy-game $close)
        :load (dialog/load-game code $input-code $load-game $close)
        :new (dialog/new-game $new-game $close)
+       :leaderboard (dialog/leaderboard {:res (res dialog)
+                                         :leaders leaders}
+                                        $close)
        :game-over (case game-over
-                    :victory (dialog/victory actions $new-game $close)
+                    :victory (dialog/victory {:name name
+                                              :actions actions
+                                              :res (res game-over)}
+                                             $input-name
+                                             $submit-name
+                                             $close)
                     :death (dialog/death actions $new-game $close)
                     nil)
        nil)
@@ -116,7 +125,8 @@
         (styled/button {:onClick $open-intro} "INTRO")
         (styled/button {:onClick $open-copy} "COPY GAME")
         (styled/button {:onClick $open-load} "LOAD GAME")
-        (styled/button {:onClick $open-new} "NEW GAME"))]
+        (styled/button {:onClick $open-new} "NEW GAME")
+        (styled/button {:onClick $open-leaderboard} "LEADERBOARD"))]
 
      (when (not-empty message)
        (styled/message-log

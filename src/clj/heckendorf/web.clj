@@ -12,6 +12,7 @@
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
               [heckendorf.game :refer [get-game update-game new-game]]
+              [heckendorf.leaderboard :refer [update-leaderboard! get-leaderboard!]]
               [clojure.java.io :as io]))
 
 (let [packer :edn
@@ -88,6 +89,14 @@
 (defmethod -event-msg-handler :game/action
   [{:keys [?data ?reply-fn client-id]}]
   (?reply-fn (update-game client-id 0 ?data)))
+
+(defmethod -event-msg-handler :game/submit
+  [{:keys [?data ?reply-fn client-id]}]
+  (update-leaderboard! client-id ?data ?reply-fn))
+
+(defmethod -event-msg-handler :game/leaderboard
+  [{:keys [?data ?reply-fn client-id]}]
+  (?reply-fn (get-leaderboard!)))
 
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-fn @router_] (stop-fn)))

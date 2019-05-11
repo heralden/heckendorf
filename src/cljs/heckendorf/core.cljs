@@ -7,7 +7,7 @@
             [heckendorf.util :refer [action get-uid set-uid!]]
             [heckendorf.ui :refer [main-panel]]))
 
-(defonce db (atom {:dialog :intro}))
+(defonce db (atom {:dialog :intro, :res {}}))
 
 (defn with-uid [opts]
   (let [uid (get-uid)]
@@ -28,6 +28,15 @@
 
 (defn set-dialog! [kw]
   (swap! db assoc :dialog kw))
+
+(defn set-response! [k s]
+  (swap! db assoc-in [:res k] s))
+
+(defn clear-response! []
+  (swap! db assoc :res {}))
+
+(defn set-leaderboard! [lb]
+  (swap! db assoc :leaderboard lb))
 
 (defn seen-tiles [prevts newts]
   (mapv (fn [prevt newt]
@@ -140,6 +149,22 @@
               (fn [game-board]
                 (set-game! game-board))))
 
+(defn request-leaderboard! []
+  (chsk-send! [:game/leaderboard]
+              5000
+              (fn [leaderboard]
+                (set-leaderboard! (sort-by first leaderboard))
+                (set-dialog! :leaderboard))))
+
+(defn submit-name! [player-name]
+  (if (> (count player-name) 20)
+    (set-response! :victory "Please enter a name no longer than 20 characters")
+    (chsk-send! [:game/submit player-name]
+                5000
+                (fn [res]
+                  (set-response! :leaderboard res)
+                  (request-leaderboard!)))))
+
 (defmulti -event-msg-handler :id)
 
 (defn event-msg-handler
@@ -174,17 +199,23 @@
       (println "dev mode"))))
 
 (defn render [state]
-  (let [$m {:$close (action #(set-dialog! nil))
+  (let [$m {:$close (action #(do (set-dialog! nil)
+                                 (clear-response!)))
             :$open-intro (action #(set-dialog! :intro))
             :$open-copy (action #(set-dialog! :copy))
             :$open-load (action #(set-dialog! :load))
             :$open-new (action #(set-dialog! :new))
+            :$open-leaderboard (action #(request-leaderboard!))
             :$new-game (action #(do (request-new-game!)
-                                    (set-dialog! nil)))
+                                    (set-dialog! nil)
+                                    (clear-response!)))
             :$load-game (action #(do (set-uid! (get-in @db [:input :code]))
                                      (.reload js/location)))
+            :$submit-name (action #(submit-name! (get-in @db [:input :name])))
             :$input-code (fn [e]
-                           (set-input! :code (.. e -target -value)))}]
+                           (set-input! :code (.. e -target -value)))
+            :$input-name (fn [e]
+                           (set-input! :name (.. e -target -value)))}]
     (dumdom/render (main-panel state $m)
                    (.getElementById js/document "app"))))
 
