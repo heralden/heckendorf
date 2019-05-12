@@ -11,7 +11,7 @@
               [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
               [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
               [taoensso.sente :as sente]
-              [heckendorf.game :refer [get-game update-game new-game]]
+              [heckendorf.game :refer [get-game update-game new-game save-games!]]
               [heckendorf.leaderboard :refer [update-leaderboard! get-leaderboard!]]
               [clojure.java.io :as io]
               [clojure.edn :as edn]
@@ -133,9 +133,11 @@
 (defn in-dev? [args]
   (not= args '("prod")))
 
-(defn stop! [] (stop-router!) (stop-web-server!))
+(defn stop! [] (save-games!) (stop-router!) (stop-web-server!))
 (defn start! [args]
   (start-router!)
-  (start-web-server! (in-dev? args)))
+  (start-web-server! (in-dev? args))
+  (.addShutdownHook (Runtime/getRuntime) (Thread. #'stop!))
+  nil)
 
 (defn -main "For `lein run`, etc." [& args] (start! args))

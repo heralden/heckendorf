@@ -2,12 +2,16 @@
     (:require [heckendorf.entity :refer [gen-entity entity-with reset-id]]
               [heckendorf.dungeon :refer [generate-dungeon darken-dungeon yx->i]]
               [heckendorf.random :refer [rand-range]]
-              [heckendorf.action :refer [effect-entities]]))
+              [heckendorf.action :refer [effect-entities]]
+              [heckendorf.data :refer [file]]
+              [clojure.edn :as edn]))
 
 (def ^:const area-width 40)
 (def ^:const area-height 30)
 (def ^:const room-attempts 50)
 (def ^:const sight-range 10)
+
+(def ^:const save-path "games.edn")
 
 (defn- rvec [v]
   "Reverses, and returns a vector"
@@ -112,7 +116,14 @@
         ;; Add the player object so client can display stats
         (assoc :player player))))
 
-(defonce game-atom (atom {}))
+(defonce game-atom
+  (atom
+    (edn/read-string (try (slurp (file save-path))
+                       (catch java.io.FileNotFoundException _
+                         (prn-str {}))))))
+
+(defn save-games! []
+  (spit (file save-path) (prn-str @game-atom)))
 
 (defn get-game-actions [client-id]
   (get-in @game-atom [client-id :entities 0 :actions]))

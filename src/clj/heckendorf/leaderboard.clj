@@ -1,13 +1,10 @@
 (ns heckendorf.leaderboard
   (:require [clojure.edn :as edn]
-            [clojure.java.io :as io]
+            [heckendorf.data :refer [file]]
             [heckendorf.game :refer [get-game-actions won-game?]]))
 
 (def ^:const leaderboard "leaderboard.edn")
 (def ^:const max-scores 100)
-
-(defn file [f]
-  (io/file (System/getProperty "user.dir") f))
 
 (def leaderboard-atom
   "Atom to handle the `leaderboard` file, to support concurrent access."

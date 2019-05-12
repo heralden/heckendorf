@@ -1,4 +1,5 @@
-(ns heckendorf.data)
+(ns heckendorf.data
+  #?(:clj (:require [clojure.java.io :as io])))
 
 (def weapon-keys {"s" 0, "d" 1, "f" 2, "g" 3})
 (def potion-keys {"c" 0, "v" 1, "b" 2})
@@ -85,3 +86,6 @@
   (case (:type item)
     :weapon ((juxt :grade :form) item)
     :potion ((juxt :grade :type) item)))
+
+#?(:clj (defn file [f]
+          (io/file (System/getProperty "user.dir") f)))

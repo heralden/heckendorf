@@ -6,7 +6,8 @@
 (defcomponent offline []
   (container
     (title "LOST CONNECTION TO SERVER")
-    (text "This dialog will disappear once connection is re-established")))
+    (text "This dialog will disappear once connection is re-established")
+    (text "If the problem persists you can try refreshing the page")))
 
 (defcomponent intro [$close]
   (container
