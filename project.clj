@@ -28,7 +28,8 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/public/css" "test/js"]
 
-  :figwheel {:css-dirs ["resources/public/css"]}
+  :figwheel {:validate-config false ; lein-figwheel doesn't recognize :fingerprint
+             :css-dirs ["resources/public/css"]}
 
   :aliases {"start" ["do" "clean," "cljsbuild" "once" "dev," "run"]}
   ;; For a developer environment, you'll want to open two terminals with
@@ -74,6 +75,7 @@
      :jar true
      :compiler     {:main            heckendorf.core
                     :output-to       "resources/public/js/compiled/app.js"
+                    :fingerprint     true
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false

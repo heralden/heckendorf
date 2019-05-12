@@ -13,7 +13,9 @@
               [taoensso.sente :as sente]
               [heckendorf.game :refer [get-game update-game new-game]]
               [heckendorf.leaderboard :refer [update-leaderboard! get-leaderboard!]]
-              [clojure.java.io :as io]))
+              [clojure.java.io :as io]
+              [clojure.edn :as edn]
+              [clojure.string :as s]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -29,6 +31,15 @@
   (def chsk-send! send-fn)
   (def connected-uids connected-uids))
 
+;; Use fingerprinted (cache-busting) app.js when created for production builds.
+(let [js-str "resources/public/js/compiled/app.js"
+      subm (some->> "public/js/compiled/manifest.edn"
+                    io/resource
+                    slurp
+                    edn/read-string)]
+  (def js-path (-> (cond-> js-str (map? subm) subm)
+                   (s/replace #"resources/public/" ""))))
+
 (defn landing-pg-handler [ring-req]
   (hiccup/html
     [:html {:lang "en"}
@@ -38,7 +49,7 @@
       [:div#sente-csrf-token
        {:data-csrf-token (force anti-forgery/*anti-forgery-token*)}]
       [:div#app]
-      [:script {:src "js/compiled/app.js"}]
+      [:script {:src js-path}]
       (javascript-tag "heckendorf.core.init();")]]))
 
 (defroutes ring-routes
