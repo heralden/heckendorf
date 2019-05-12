@@ -3,7 +3,7 @@
               [heckendorf.entity :refer [simplify-keyword train regain]]
               [heckendorf.dungeon :refer [yx->m line-of-sight]]
               [heckendorf.item :refer [dmg-with gen-item potion->hp weapons]]
-              [heckendorf.data :refer [hotkey->index bounded-conj]]))
+              [heckendorf.data :refer [hotkey->index bounded-conj item->vec]]))
 
 (def ^:const dash-cost 10)
 
@@ -102,8 +102,15 @@
 
 (defmethod encounter [:player :chest]
   [player chest]
-  (let [items (gen-item chest)]
-    [(update player :inventory into items)
+  (let [items (gen-item chest)
+        msgs (map (comp #(str "You picked up " %)
+                        #(s/join " " %)
+                        #(map name %)
+                        item->vec)
+                  items)]
+    [(-> player
+         (update :inventory into items)
+         (update :message #(reduce bounded-conj % msgs)))
      (assoc chest :type :chest-open)]))
 
 (defmethod encounter [:monster :empty]

@@ -1,7 +1,7 @@
 (ns heckendorf.ui
   (:require [clojure.string :as s]
             [dumdom.core :refer [defcomponent]]
-            [heckendorf.data :refer [inv->pots inv->weps]]
+            [heckendorf.data :refer [inv->pots inv->weps item->vec]]
             [heckendorf.styles.core :as styled]
             [heckendorf.components.dialog :as dialog]))
 
@@ -67,11 +67,6 @@
          (range)
          (repeat width))))
 
-(defn item->str [item]
-  (case (:type item)
-    :weapon ((juxt :grade :form) item)
-    :potion ((juxt :grade :type) item)))
-
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog, leaders :leaderboard,
          {:keys [code name]} :input, res :res} state
@@ -113,7 +108,7 @@
                     "LVL" (inc lvl)
                     "EQP" (if (= (:form equipped) :fist)
                             :none
-                            (item->str equipped))
+                            (item->vec equipped))
                     "FLR" (-> floor inc -)]))
          (styled/status-bar
            (str "POTIONS " (inv->pots inventory)))
@@ -130,7 +125,7 @@
 
      (when (not-empty message)
        (styled/message-log
-         (for [[index text] (map-indexed vector (take-last 5 message))]
+         (for [[index text] (map-indexed vector (take-last 10 message))]
               (styled/log-entry
                 {:key index}
                 (s/upper-case text)))))]))
