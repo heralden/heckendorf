@@ -69,14 +69,13 @@
 
 (defcomponent game-interface [state $m]
   (let [{{:keys [player]} :game, dialog :dialog, leaders :leaderboard,
-         {:keys [code name]} :input, res :res} state
+         {:keys [code name]} :input, res :res, offline? :offline?} state
         {:keys [hp max-hp stm max-stm exp lvl equipped inventory message floor
                 game-over actions]} player
         {:keys [$close $open-intro $open-copy $open-load $open-new $open-leaderboard
                 $new-game $load-game $submit-name $input-code $input-name]} $m]
 
     [:div
-
      (case dialog
        :intro (dialog/intro $close)
        :copy (dialog/copy-game $close)
@@ -95,6 +94,8 @@
                     :death (dialog/death actions $new-game $close)
                     nil)
        nil)
+
+     (when offline? (dialog/offline))
 
      [:div
 

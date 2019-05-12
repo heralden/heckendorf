@@ -20,6 +20,7 @@
    :font retro-font
    :border retro-border
    :color 'white
+   :white-space 'nowrap
    :background-color 'black
    :padding [[(u/px 2) (u/px 4)]]})
 

@@ -7,7 +7,7 @@
             [heckendorf.util :refer [action get-uid set-uid!]]
             [heckendorf.ui :refer [main-panel]]))
 
-(defonce db (atom {:dialog :intro, :res {}}))
+(defonce db (atom {:dialog :intro, :res {}, :offline? false}))
 
 (defn with-uid [opts]
   (let [uid (get-uid)]
@@ -37,6 +37,9 @@
 
 (defn set-leaderboard! [lb]
   (swap! db assoc :leaderboard lb))
+
+(defn set-offline! [v]
+  (swap! db assoc :offline? v))
 
 (defn seen-tiles [prevts newts]
   (mapv (fn [prevt newt]
@@ -177,10 +180,15 @@
 
 (defmethod -event-msg-handler :chsk/state
   [{:as ev-msg :keys [event]}]
-  (let [{:keys [first-open? uid]} (second (second event))]
-    (when first-open?
-      (set-uid! uid)
-      (request-game!))))
+  (let [{:keys [first-open? uid open?]} (second (second event))]
+    (cond
+      first-open? (do (set-uid! uid)
+                      (request-game!))
+      (and (not open?)
+           (not (get @db :offline?))) (set-offline! true)
+      (and open?
+           (get @db :offline?)) (set-offline! false)
+      :else nil)))
 
 (defmethod -event-msg-handler :chsk/handshake [_] nil)
 

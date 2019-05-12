@@ -3,6 +3,11 @@
             [heckendorf.util :refer [get-uid]]
             [heckendorf.styles.dialog :refer [container title text small-text text-group text-part button-group button input]]))
 
+(defcomponent offline []
+  (container
+    (title "LOST CONNECTION TO SERVER")
+    (text "This dialog will disappear once connection is re-established")))
+
 (defcomponent intro [$close]
   (container
     (title "INTRO")
