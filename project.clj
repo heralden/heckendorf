@@ -1,4 +1,4 @@
-(defproject heckendorf "0.1.0-SNAPSHOT"
+(defproject heckendorf "1.0.0"
   :description "Roguelike dungeon crawler game with fullstack Clojure"
   :url "https://github.com/uosl/heckendorf"
   :license {:name "Eclipse Public License"

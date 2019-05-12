@@ -2,9 +2,9 @@
 
 Procedurally generated roguelike dungeon crawler game implemented as a fullstack Clojure webapp.
 
-Previously known as clj-roguelike. It's nearing completion, so I'll probably host it somewhere soon.
+Live at: http://heck.8620.cx
 
-# Running
+# Running locally
 
 ```
 lein start
