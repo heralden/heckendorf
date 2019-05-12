@@ -233,6 +233,7 @@
 
 (defn ^:export init []
   (dev-setup)
+  (render @db)
   (add-watch db :render #(render %4))
   (start-router!)
   nil)

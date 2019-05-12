@@ -115,7 +115,7 @@
            (str "POTIONS " (inv->pots inventory)))
          (styled/status-bar
            (str "WEAPONS " (inv->weps inventory)))]
-        "LOADING")
+        (styled/status-bar "LOADING"))
 
       (styled/menu
         (styled/button {:onClick $open-intro} "INTRO")
