@@ -57,7 +57,7 @@
   (let [lmap @leaderboard-atom
         actions (get-game-actions client-id)
         lkey [client-id actions]
-        player-name (subs name-data 0 20)]
+        player-name (subs name-data 0 (min (count name-data) 20))]
     (cond
       (or (not (won-game? client-id))
           (nil? actions)) (reply-fn "You cheater You have not won")
