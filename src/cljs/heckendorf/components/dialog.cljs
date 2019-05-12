@@ -72,7 +72,7 @@
        (text "The leaderboard is empty")
        (text "Perhaps you should change that")]
       (text-group
-        (for [part (partition 20 leaders)]
+        (for [part (partition 20 20 nil leaders)]
           (text-part
             (for [score part]
               (small-text (prn-str score)))))))
