@@ -1,21 +1,22 @@
 (ns heckendorf.web
-    (:gen-class)
-    (:require [org.httpkit.server :as http-kit]
-              [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
-              [hiccup.core :as hiccup]
-              [hiccup.element :refer [javascript-tag]]
-              [ring.middleware.defaults]
-              [ring.middleware.anti-forgery :as anti-forgery]
-              [compojure.core :as comp :refer (defroutes GET POST)]
-              [compojure.route :as route]
-              [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
-              [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
-              [taoensso.sente :as sente]
-              [heckendorf.game :refer [get-game update-game new-game save-games!]]
-              [heckendorf.leaderboard :refer [update-leaderboard! get-leaderboard!]]
-              [clojure.java.io :as io]
-              [clojure.edn :as edn]
-              [clojure.string :as s]))
+  (:gen-class)
+  (:require [org.httpkit.server :as http-kit]
+            [taoensso.sente.server-adapters.http-kit :refer (get-sch-adapter)]
+            [hiccup.core :as hiccup]
+            [hiccup.element :refer [javascript-tag]]
+            [ring.middleware.defaults]
+            [ring.middleware.anti-forgery :as anti-forgery]
+            [compojure.core :as comp :refer (defroutes GET POST)]
+            [compojure.route :as route]
+            [clojure.core.async :as async :refer (<! <!! >! >!! put! chan go go-loop)]
+            [taoensso.timbre :as timbre :refer (tracef debugf infof warnf errorf)]
+            [taoensso.sente :as sente]
+            [heckendorf.game :refer [get-game update-game new-game save-games!]]
+            [heckendorf.leaderboard :refer [update-leaderboard! get-leaderboard!]]
+            [clojure.java.io :as io]
+            [clojure.edn :as edn]
+            [clojure.string :as s])
+  (:import [java.util.concurrent Executors TimeUnit]))
 
 (let [packer :edn
       chsk-server (sente/make-channel-socket-server!
@@ -109,6 +110,16 @@
   [{:keys [?data ?reply-fn client-id]}]
   (?reply-fn (get-leaderboard!)))
 
+(defonce scheduler_ (atom nil))
+(defn stop-scheduler! [] (when-let [stop-fn @scheduler_] (stop-fn)))
+(defn start-scheduler! []
+  (stop-scheduler!)
+  (reset! scheduler_
+          (let [scheduled-future (.scheduleAtFixedRate
+                                   (Executors/newScheduledThreadPool 1)
+                                   save-games! 0 300 TimeUnit/SECONDS)]
+            #(.cancel scheduled-future false))))
+
 (defonce router_ (atom nil))
 (defn stop-router! [] (when-let [stop-fn @router_] (stop-fn)))
 (defn start-router! []
@@ -133,10 +144,11 @@
 (defn in-dev? [args]
   (not= args '("prod")))
 
-(defn stop! [] (save-games!) (stop-router!) (stop-web-server!))
+(defn stop! [] (stop-scheduler!) (save-games!) (stop-router!) (stop-web-server!))
 (defn start! [args]
   (start-router!)
   (start-web-server! (in-dev? args))
+  (start-scheduler!)
   (.addShutdownHook (Runtime/getRuntime) (Thread. #'stop!))
   nil)
 
